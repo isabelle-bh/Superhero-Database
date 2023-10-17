@@ -9,6 +9,8 @@ const parts = [
     {id: 103, name: 'Hat', colour: 'Purple'},
 ];
 
+app.use('/', express.static('static'));
+
 app.get('/api/parts', (req, res) => {
     console.log(`GET request for ${req.url}`);
     res.send(parts);
