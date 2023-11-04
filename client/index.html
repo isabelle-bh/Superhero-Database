@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Parts Store</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Superhero Database</h1>
+        <div class="middle">
+            <h2>Search for Superhero: </h2>
+            <div class="intro">
+                <p class="search-boxes">
+                    <input type="text" id="nameInput" placeholder="Name" oninput="searchByName()">
+                    <input type="text" id="raceInput" placeholder="Race" oninput="searchByRace()">
+                    <input type="text" id="pubInput" placeholder="Publisher" oninput="searchByPublisher()">
+                    <input type="text" id="powerInput" placeholder="Power" oninput="searchByPowers()">
+                </p>
+                <ol id="results"></ol>
+            </div>
+            <div class="lists">
+                <button class="dropbtn">Created Lists</button>
+                <div class="dropdown-content">
+                    <a href="#">Link 1</a>
+                    <a href="#">Link 2</a>
+                    <a href="#">Link 3</a>
+                </div>
+            </div>
+        </div> 
+        <div class="additem">
+            <h2>Create a List</h2>
+            <span>
+                <input type="text" id="listInput" placeholder="Enter a Name">
+                <button id="addlist">submit</button>
+                <ol id="listsContainer">
+                    
+                </ol>
+            </span>
+            <span id="status"></span>
+        </div>
+        <script src="script.js"></script>
+    </body>
+</html>

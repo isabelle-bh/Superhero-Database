@@ -1,0 +1,116 @@
+
+body {
+    background: linear-gradient(135deg, #ff0000, #ff6831, #ffd700);
+    background-size: 200% 400%;
+    animation: gradientAnimation 10s infinite;
+    font-family: 'Teko', sans-serif;
+    font-weight: 300;
+    font-size: 30px;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+h1 {
+    color: rgb(16, 16, 16);
+    font-size: 50px;
+    letter-spacing: 6px;
+    margin: 0;
+}
+h2 {
+    font-weight: 400;
+    font-size: 40px;
+    margin: 0;
+}
+.intro {
+    width: 800px;
+    display: inline-block;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: 'Mukta', sans-serif;
+}
+
+button {
+    padding: 10px 20px;
+    margin-bottom: 5px;
+    background-color: #1668f6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: 'Mukta', sans-serif;
+}
+
+button:hover {
+    background-color: #0749a5;
+}
+
+li {
+    list-style: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 5px 5px;
+    padding: 10px;
+    background-color: #ffffff;
+    font-size: 20px;
+    display: inline-block;
+    width: 300px;
+    height: 70px;
+    vertical-align: top;
+    font-family: 'Mukta', sans-serif;
+}
+
+/* On hover, change the background color and add a slight shadow */
+li:hover {
+    background-color: #e5e5e5;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.lists {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.lists {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.lists:hover .dropdown-content {
+    display: block;
+}
