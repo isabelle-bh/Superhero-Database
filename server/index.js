@@ -1,14 +1,16 @@
+
 const superheroInfo = require('../superhero_info.json');
 const superheroPowers = require('../superhero_powers.json'); // Load superhero_powers data
 const express = require('express');
 const app = express();
 const port = 3000;
 const router = express.Router();
+const routerLists = express.Router();
 
 // superheroInfo store
 
 // setup serving front-end code
-app.use('/', express.static('static'));
+app.use('/', express.static('client'));
 
 // setup middleware to do logging
 app.use((req, res, next) => { // for all routes
@@ -63,56 +65,164 @@ router.route('/:id')
         }
     
         res.send(newpart);
-    })
-    .post((req, res) => {
-        const newpart = req.body;
-        console.log("Part: ", newpart);
-    
-        // find the superhero
-        const superhero = superheroInfo.findIndex(p => p.id === parseInt(req.params.id));
-    
-        if (superhero < 0) {
-            res.status(404).send(`Part ${req.params.id} not found`);
-        } else {
-            console.log('Changing stock for ', req.params.id);
-            superheroInfo[superhero].stock += parseInt(req.body.stock);
-            res.send(superheroInfo[superhero]);
-        }
     });
 
 router.route('/:id/powers')
     .get((req, res) => {
         const superheroId = parseInt(req.params.id);
-    
+
         // Find the superhero in superhero_info by ID
         const superhero = superheroInfo.find(superhero => superhero.id === superheroId);
-    
+
         if (!superhero) {
             res.status(404).send(`Superhero with ID ${superheroId} not found`);
         } else {
             // Attempt to retrieve the powers based on the superhero's name
             const superheroName = superhero.name;
-            const superheroPowersData = superheroPowers[superheroName];
-            console.log(superheroPowers);
-            console.log(superheroPowersData);
-            
-            if (superheroPowersData) {
-            // Filter the "True" superpowers and create an object with only "True" powers
-            const truePowers = {};
-            for (const key in superheroPowersData) {
-                if (superheroPowersData[key] === 'True') {
-                truePowers[key] = 'True';
+            const powers = [];
+
+            superheroPowers.forEach(hero => {
+                if (hero.hero_names === superheroName) {
+                    for (const power in hero) {
+                        if (power !== 'hero_names' && hero.hasOwnProperty(power) && hero[power] === 'True') {
+                            powers.push(power);
+                        }
+                    }
                 }
-            }
-            res.send(truePowers);
+            });
+            if (powers.length >0 ) {
+                res.send(powers);
             } else {
-            res.status(404).send(`Superpowers for superhero ${superhero.name} with ID ${superhero.id} not found`);
+                res.status(404).send(`Superpowers for superhero ${superhero.name} with ID ${superhero.id} not found`);
             }
         }
     });
 
 // install the router at /api/superheroInfo
 app.use('/api/superheroInfo', router);
+
+// parse data in body as JSON
+routerLists.use(express.json());
+
+// step 5: create a new superhero list
+const superheroLists = {}; // Store superhero lists
+
+// DONE
+routerLists.route('/createList')
+    .post((req, res) => {
+        const listName = req.body.listName;
+
+        if (!listName) {
+            res.status(400).send('Missing list name');
+        } else if (superheroLists[listName]) {
+            res.status(400).send('List name already exists');
+        } else {
+            superheroLists[listName] = [];
+            res.send(`Superhero list '${listName}' created successfully`);
+        }
+    });
+    
+// DONE 
+// get list of lists
+routerLists.route('/getLists')
+    .get((req, res) => {
+        const listNames = Object.keys(superheroLists);
+        res.send(listNames);
+    });
+    
+// DONE
+// step 6 Save a list of superhero IDs to a given list name
+routerLists.route('/:listName/addSuperhero/:superheroId')
+    .post((req, res) => {
+        const listName = req.params.listName;
+        const superheroId = parseInt(req.params.superheroId);
+
+        if (!superheroLists[listName]) {
+            res.status(404).send(`Superhero list '${listName}' does not exist`);
+        } else {
+            const superhero = superheroInfo.find(p => p.id === superheroId);
+            if (superhero) {
+                superheroLists[listName].push(superhero.id);
+                res.send(`Superhero added to list '${listName}'`);
+            } else {
+                res.status(404).send(`Superhero with ID ${superheroId} not found`);
+            }
+        }
+    });
+
+// DONE    
+// Step 7: Get the list of superhero IDs for a given list
+routerLists.route('/:listName/superheroes')
+    .get((req, res) => {
+        const listName = req.params.listName;
+
+        if (!superheroLists[listName]) {
+            res.status(404).send(`Superhero list '${listName}' does not exist`);
+        } else {
+            res.send(superheroLists[listName]);
+        }
+    });
+
+// Step 8: Delete a list of superheroes with a given name
+routerLists.route('/:listName/deleteList')
+    .delete((req, res) => {
+        const listName = req.params.listName;
+
+        if (!superheroLists[listName]) {
+            res.status(404).send(`Superhero list '${listName}' does not exist`);
+        } else {
+            delete superheroLists[listName];
+            res.send(`Superhero list '${listName}' deleted`);
+        }
+    });
+
+// step 9: get a list of names, information, and powers of all superheroes saved in a given list
+routerLists.route('/:listName/getSuperheroesDetails')
+    .get((req, res) => {
+        const listName = req.params.listName;
+
+        if (!superheroLists[listName]) {
+            res.status(404).send(`Superhero list '${listName}' does not exist`);
+        } else {
+            const superheroIds = superheroLists[listName];
+            const superheroDetails = [];
+
+            superheroIds.forEach(superheroId => {
+                const superhero = superheroInfo.find(p => p.id === superheroId);
+                if (superhero) {
+                    const powers = getSuperheroPowers(superhero.name);
+                    superheroDetails.push({
+                        id: superhero.id,
+                        name: superhero.name,
+                        information: superhero,
+                        powers: powers,
+                    });
+                }
+            });
+
+            res.send(superheroDetails);
+        }
+    });
+
+// function to get superhero powers by name
+function getSuperheroPowers(superheroName) {
+    const powers = [];
+
+    superheroPowers.forEach(hero => {
+        if (hero.hero_names === superheroName) {
+            for (const power in hero) {
+                if (power !== 'hero_names' && hero.hasOwnProperty(power) && hero[power] === 'True') {
+                    powers.push(power);
+                }
+            }
+        }
+    });
+
+    return powers;
+}
+
+// install the router at /api/superheroInfo/lists
+app.use('/api/superheroInfo/lists', routerLists);
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
