@@ -26,17 +26,6 @@ router.route('/') // all the routes to the base prefix
     // get a list of superheroInfo
     .get((req, res) => {
         res.send(superheroInfo);
-    })
-    // create a superhero
-    .post((req, res) => {
-        const newpart = req.body;
-        newpart.id = 100 + superheroInfo.length;
-        if (newpart.name) {
-            superheroInfo.push(newpart);
-            res.send(newpart);
-        } else {
-            res.status(400).send('Missing name');
-        }
     });
 
 router.route('/:id')
@@ -47,24 +36,6 @@ router.route('/:id')
         } else {
             res.status(404).send(`Superhero ${req.params.id} was not found!`);
         }
-    })
-    .put((req, res) => {
-        const newpart = req.body;
-        console.log("Part: ", newpart);
-        // add ID field
-        newpart.id = parseInt(req.params.id);
-    
-        // replace the superhero with the new one
-        const superhero = superheroInfo.findIndex(p => p.id === parseInt(newpart.id));
-        if (superhero < 0) {
-            console.log('Creating new superhero');
-            superheroInfo.push(newpart);
-        } else {
-            console.log('Modifying superhero ', req.params.id);
-            superheroInfo[superhero] = newpart;
-        }
-    
-        res.send(newpart);
     });
 
 router.route('/:id/powers')
@@ -97,6 +68,27 @@ router.route('/:id/powers')
             }
         }
     });
+
+// Add a new route to get superheroes by a specific power
+router.route('/superheroes-by-power/:power')
+    .get((req, res) => {
+        const powerToSearch = req.params.power;
+
+        // Filter superheroes based on the power
+        const superheroesWithPower = superheroInfo.filter(superhero => {
+        // Check if the power exists in the superhero's powers
+        return superheroPowers.some(hero => {
+            return hero.hero_names === superhero.name && hero[powerToSearch] === 'True';
+        });
+        });
+
+        if (superheroesWithPower.length > 0) {
+            res.send(superheroesWithPower);
+        } else {
+            res.status(404).send(`No superheroes found with the power '${powerToSearch}'`);
+        }
+  });
+
 
 // install the router at /api/superheroInfo
 app.use('/api/superheroInfo', router);
