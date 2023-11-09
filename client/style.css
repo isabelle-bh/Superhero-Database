@@ -1,11 +1,27 @@
 
+* {
+    margin: 0;
+    padding: 0;
+}
+
 body {
-    background: linear-gradient(135deg, #ff0000, #ff6831, #ffd700);
-    background-size: 200% 400%;
-    animation: gradientAnimation 10s infinite;
-    font-family: 'Teko', sans-serif;
+    background-color: pink;
+    font-family: 'Mukta', sans-serif;
     font-weight: 300;
     font-size: 30px;
+}
+
+.header {
+    background-color: #EFEBE0;
+    width: 100%;
+    height: auto;
+    top: 0px;
+    left: 0px;
+    padding: 0 20px;
+    padding-bottom: 20px;
+    text-align: center;
+    margin: 0;
+    border: solid black 0px
 }
 
 @keyframes gradientAnimation {
@@ -21,96 +37,142 @@ body {
 }
 
 h1 {
-    color: rgb(16, 16, 16);
+    color: rgb(48, 48, 48);
     font-size: 50px;
     letter-spacing: 6px;
     margin: 0;
+    font-family: 'Pacifico', cursive;
 }
 h2 {
+    padding: 0px 20px;
+    text-align: center;
     font-weight: 400;
     font-size: 40px;
-    margin: 0;
-}
-.intro {
-    width: 800px;
-    display: inline-block;
+    margin: 15px 0;
+    color: rgb(48, 48, 48);
+    font-family: 'Pacifico', cursive;
+    line-height: 1.2;
 }
 
-input {
+.intro {
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center;
+}
+
+.createList {
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center;
+}
+
+.createdLists {
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center;
+}
+
+.addSuperheroes {
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center;
+}
+
+input, select {
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 0px solid;
+    border-radius: 14px;
     font-size: 16px;
+    font-style: italic;
+    background-color: #EFEBE0;
     font-family: 'Mukta', sans-serif;
 }
 
+#nameDropdownFilter, #raceDropdownFilter, #pubDropdownFilter {
+    display: none;
+    width: 190px;
+    background-color: #d8d4ca;
+}
+
 button {
-    padding: 10px 20px;
-    margin-bottom: 5px;
-    background-color: #1668f6;
+    padding: 10px;
+    margin-left: 5px;
+    background-color: #FB6B90;
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 14px;
     font-size: 16px;
     cursor: pointer;
     font-family: 'Mukta', sans-serif;
 }
 
 button:hover {
-    background-color: #0749a5;
+    background-color: #a50759;
 }
 
+.results {
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center; /* Vertical centering */
+}
+
+ol {
+    margin: 15px 0;
+    max-width: 940px;
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    align-items: left;
+    padding: 0;
+    list-style: none; 
+}
+  
 li {
-    list-style: none;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 0px solid;
+    border-radius: 14px;
     margin: 5px 5px;
-    padding: 10px;
-    background-color: #ffffff;
-    font-size: 20px;
-    display: inline-block;
-    width: 300px;
-    height: 70px;
-    vertical-align: top;
+    padding: 5px;
+    background-color: #FB6B90;
+    font-weight: 400;
+    font-size: 17px;
     font-family: 'Mukta', sans-serif;
+    text-align: left;
+    max-width: 180px;
 }
 
-/* On hover, change the background color and add a slight shadow */
 li:hover {
     background-color: #e5e5e5;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.lists {
-    display: inline-block;
-    vertical-align: top;
-}
-
-.lists {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f1f1f1;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+.sidenav {
+    height: 100%;
+    width: 250px;
+    position: fixed;
     z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #d8d4ca;
+    overflow-x: hidden;
+    padding-top: 20px;
+  }
+  
+.main {
+    margin-left: 250px;
 }
 
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
+.list-button {
+    width: 180px;
+    margin-bottom: 10px;
 }
 
-.dropdown-content a:hover {
-    background-color: #ddd;
+.selected-btn {
+    background-color: #a50759
 }
 
-.lists:hover .dropdown-content {
-    display: block;
+.listDetails li {
+    padding: 3px;
+    width: 200px; /* Set your desired width */
+    white-space: nowrap; /* Prevent text from wrapping to the next line */
+    overflow: scroll; /* Hide any overflowing text */
 }
