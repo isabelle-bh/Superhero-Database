@@ -134,8 +134,12 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
         } else {
             const superhero = superheroInfo.find(p => p.id === superheroId);
             if (superhero) {
-                superheroLists[listName].push(superhero.id);
-                res.send(`Superhero added to list '${listName}'`);
+                if (superheroLists[listName].includes(superhero.id)) {
+                    res.status(400).send('Superhero already in list.');
+                } else {
+                    superheroLists[listName].push(superhero.id);
+                    res.send(`Superhero added to list '${listName}'`);
+                }  
             } else {
                 res.status(404).send(`Superhero with ID ${superheroId} not found`);
             }
@@ -191,7 +195,6 @@ routerLists.route('/:listName/getSuperheroesDetails')
                     });
                 }
             });
-
             res.send(superheroDetails);
         }
     });
