@@ -3,46 +3,91 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Parts Store</title>
+        <title>Superhero Database</title>
         <link rel="stylesheet" href="style.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     </head>
     <body>
-        <h1>Superhero Database</h1>
-        <div class="middle">
-            <h2>Search for Superhero: </h2>
-            <div class="intro">
-                <p class="search-boxes">
-                    <input type="text" id="nameInput" placeholder="Name" oninput="searchByName()">
-                    <input type="text" id="raceInput" placeholder="Race" oninput="searchByRace()">
-                    <input type="text" id="pubInput" placeholder="Publisher" oninput="searchByPublisher()">
-                    <input type="text" id="powerInput" placeholder="Power" oninput="searchByPowers()">
-                </p>
-                <ol id="results"></ol>
+        <div id="mySidenav" class="sidenav">
+            <h2>created lists</h2>
+            <div class="createdLists">
+                <ol id="listsContainer">
+
+                </ol>
+            </div>
+            <h2>details</h2>
+            <div class="listDetails">
+                <ol id="listResults">
+
+                </ol>
+            </div>
+        </div>   
+        <div class="main"> 
+            <div class="header">
+                <h1>superhero database</h1>
+            </div> 
+            <div class="middle">
+                <h2>search for superhero: </h2>
+                <div class="intro">
+                    <p class="search-boxes">
+                        <input type="text" id="nameInput" placeholder="name" oninput="searchByName()">
+                        <input type="text" id="raceInput" placeholder="race" oninput="searchByRace()">
+                        <input type="text" id="pubInput" placeholder="publisher" oninput="searchByPublisher()">
+                        <input type="text" id="powerInput" placeholder="power" oninput="searchByPower()">
+                        <select id="nameDropdownFilter" onchange="searchByName()">
+                            <option value="name">Filter A-Z by Name</option>
+                            <option value="race">Filter A-Z by Race</option>
+                            <option value="publisher">Filter A-Z by Publisher</option>
+                        </select>
+                        <select id="raceDropdownFilter" onchange="searchByRace()">
+                            <option value="name">Filter A-Z by Name</option>
+                            <option value="race">Filter A-Z by Race</option>
+                            <option value="publisher">Filter A-Z by Publisher</option>
+                        </select>
+                        <select id="pubDropdownFilter" onchange="searchByPublisher()">
+                            <option value="name">Filter A-Z by Name</option>
+                            <option value="race">Filter A-Z by Race</option>
+                            <option value="publisher">Filter A-Z by Publisher</option>
+                        </select>
+                    </p>                
+                </div>
+                <div class="results">
+                    <ol id="results">
+
+                    </ol>
+                </div>
+            </div> 
+            <div class="additem">
+                <h2>create a list</h2>
+                <div class="createList">
+                    <p class="search-boxes">
+                        <input type="text" id="listNameInput" placeholder="enter a name">
+                        <button id="createListButton" onclick="createList()">submit</button>
+                    </p>
+                </div>
+                <span id="status">
+
+                </span>
             </div>
             <div class="lists">
-                <button class="dropbtn">Created Lists</button>
-                <div class="dropdown-content">
-                    <a href="#">Link 1</a>
-                    <a href="#">Link 2</a>
-                    <a href="#">Link 3</a>
+                <h2>add superhero to list</h2>
+                <div class="addSuperheroes">
+                    <p>
+                        <input type="text" id="findListInput" placeholder="name of list">
+                        <input type="text" id="addSuperheroInput" placeholder="superhero id">
+                        <button id="addSuperheroButton" onclick="addSuperheroToList()">submit</button>
+                    </p>
+                </div>
+                <div class="results">
+                    <ol id="addToList">
+
+                    </ol>
                 </div>
             </div>
-        </div> 
-        <div class="additem">
-            <h2>Create a List</h2>
-            <span>
-                <input type="text" id="listInput" placeholder="Enter a Name">
-                <button id="addlist">submit</button>
-                <ol id="listsContainer">
-                    
-                </ol>
-            </span>
-            <span id="status"></span>
-        </div>
+        </div>     
         <script src="script.js"></script>
     </body>
 </html>
