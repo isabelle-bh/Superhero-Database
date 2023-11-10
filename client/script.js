@@ -105,8 +105,16 @@ function searchByName() {
             
                 item.appendChild(document.createTextNode(`ID: ${e.id}, `));
                 item.appendChild(document.createTextNode(`NAME: ${e.name}, `));
-                item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
-                item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                if (e.Race == '-') {
+                    item.appendChild(document.createTextNode(`RACE: Unknown, `));
+                } else {
+                    item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
+                }
+                if (e.Publisher == '') {
+                    item.appendChild(document.createTextNode(`PUB: Unknown `));
+                } else {
+                    item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                }
 
                 item.classList.add("search-results");
 
@@ -185,8 +193,16 @@ function searchByRace() {
             
                 item.appendChild(document.createTextNode(`ID: ${e.id}, `));
                 item.appendChild(document.createTextNode(`NAME: ${e.name}, `));
-                item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
-                item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                if (e.Race == '-') {
+                    item.appendChild(document.createTextNode(`RACE: Unknown, `));
+                } else {
+                    item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
+                }                
+                if (e.Publisher == '') {
+                    item.appendChild(document.createTextNode(`PUB: Unknown `));
+                } else {
+                    item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                }
 
                 const result = item.textContent;
                 results.push(result);
@@ -264,8 +280,16 @@ function searchByPublisher() {
             
                 item.appendChild(document.createTextNode(`ID: ${e.id}, `));
                 item.appendChild(document.createTextNode(`NAME: ${e.name}, `));
-                item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
-                item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                if (e.Race == '-') {
+                    item.appendChild(document.createTextNode(`RACE: Unknown, `));
+                } else {
+                    item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
+                }
+                if (e.Publisher == '') {
+                    item.appendChild(document.createTextNode(`PUB: Unknown `));
+                } else {
+                    item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                }
 
                 const result = item.textContent;
                 results.push(result);
@@ -352,8 +376,16 @@ function searchByPower() {
                     const item = document.createElement('li');
                     item.appendChild(document.createTextNode(`ID: ${e.id}, `));
                     item.appendChild(document.createTextNode(`NAME: ${e.name}, `));
-                    item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
-                    item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                    if (e.Race == '-') {
+                        item.appendChild(document.createTextNode(`RACE: Unknown, `));
+                    } else {
+                        item.appendChild(document.createTextNode(`RACE: ${e.Race}, `));
+                    }                    
+                    if (e.Publisher == '') {
+                        item.appendChild(document.createTextNode(`PUB: Unknown `));
+                    } else {
+                        item.appendChild(document.createTextNode(`PUB: ${e.Publisher} `));
+                    }
 
                     const result = item.textContent;
                     results.push(result);
@@ -449,6 +481,51 @@ function createList() {
             console.error('An error occurred while creating the list!');
             const item = document.createElement('p');
             item.appendChild(document.createTextNode(`An unspecified error occurred while creating the list! Please try again.`));
+            l.appendChild(item)
+        }
+    })
+    .catch(error => {
+        // Handle fetch error
+        console.error('Error:', error);
+    });
+
+    getLists();
+    refreshListDetails();
+}
+
+function deleteList() {
+    const listNameInput = document.getElementById('deleteListNameInput');
+    const listName = listNameInput.value;
+    sanitizeListInput(listName);
+
+    const data = {
+        listName: listName
+    }
+
+    fetch(`/api/superheroInfo/lists/${listName}/deleteList`, {
+        method: 'DELETE',
+    })
+    .then(res => {
+        if (res.status === 200) {
+            // Handle success
+            console.log(`List deleted successfully!`);
+            const item = document.createElement('p');
+            item.appendChild(document.createTextNode(`List deleted successfully!`));
+            l.appendChild(item)
+        } else if (res.status === 404) { 
+            console.log("List doesn't exist.")
+            const item = document.createElement('p');
+            item.appendChild(document.createTextNode(`List doesn't exist`));
+            l.appendChild(item)
+        } else if (listName == '') {
+            const item = document.createElement('p');
+            item.appendChild(document.createTextNode(`Please fill out inputs.`));
+            l.appendChild(item)
+        } else {
+            // Handle other errors
+            console.error('An error occurred while deleting the list!');
+            const item = document.createElement('p');
+            item.appendChild(document.createTextNode(`An unspecified error occurred while deleting the list! Please try again.`));
             l.appendChild(item)
         }
     })
