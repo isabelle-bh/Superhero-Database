@@ -8,6 +8,7 @@ const port = 3000;
 const router = express.Router();
 const routerLists = express.Router();
 
+// STEP 10 FOR BACKEND
 // middleware to sanitize input
 function sanitizeInput(req, res, next) {
     const maxLength = 20; // Adjust the maximum length as needed
@@ -64,6 +65,7 @@ router.use(sanitizeInput);
 
 // routes for /api/superheroInfo
 router.route('/') // all the routes to the base prefix
+    // STEP 1 FOR BACKEND
     // get a list of superheroInfo
     .get((req, res) => {
         const superheroDetails = superheroInfo.map(superhero => {
@@ -92,6 +94,7 @@ router.route('/:id')
 
 // routes for /api/superheroInfo/:id/powers
 router.route('/:id/powers')
+    // STEP 2 FOR BACKEND
     // get a list of powers for a given superhero
     .get(sanitizeInput, (req, res) => {
         const superheroId = parseInt(req.params.id);
@@ -126,6 +129,56 @@ router.route('/:id/powers')
             }
         }
     });
+
+router.route('/searchFunction/:field/:pattern/:n?')
+    // STEP 4 FOR BACKEND
+    // get a list of superheroes with a given field matching a pattern
+    .get((req, res) => {
+        const n = parseInt(req.params.n);
+        if (isNaN(n) && req.params.n !== undefined) {
+            res.status(400).send('Invalid parameter: n must be a number');
+            return;
+        }
+
+        const field = req.params.field.toLowerCase();
+        const pattern = req.params.pattern.toLowerCase();
+
+        if (!['id', 'name', 'race', 'publisher', 'powers'].includes(field)) {
+            res.status(400).send('Invalid parameter: field must be one of [id, name, race, publisher, powers]');
+            return;
+        }
+
+        const superheroDetails = superheroInfo.map(superhero => {
+            const powers = getSuperheroPowers(superhero.name).join(','); // Convert powers array to a string
+            return {
+                id: superhero.id,
+                name: superhero.name,
+                race: superhero.Race,
+                publisher: superhero.Publisher,
+                powers: powers
+            };
+        });
+
+        const filteredSuperheroes = superheroDetails.filter(superhero => {
+            const fieldValue = superhero[field].toString().toLowerCase();
+
+            // Special handling for powers field
+            if (field === 'powers') {
+                const powersArray = fieldValue.split(','); // Convert powers string back to an array
+                return powersArray.some(power => power.trim().startsWith(pattern));
+            }
+
+            return fieldValue.startsWith(pattern);
+        });
+
+        if (n === null || n === 0 || filteredSuperheroes.length <= n) {
+            res.send(filteredSuperheroes);
+        } else {
+            res.send(filteredSuperheroes.slice(0, n));
+        }
+    });
+
+
 
 // routes for /api/superheroInfo/superheroes-by-power/:power
 router.route('/superheroes-by-power/:power')
@@ -172,6 +225,7 @@ const superheroLists = {}; // Store superhero lists
 
 // routes for /api/superheroInfo/lists/createList
 routerLists.route('/createList')
+    // STEP 5 FOR BACKEND
     // create a new superhero list
     .post(sanitizeInput, (req, res) => {
         const listName = req.body.listName;
@@ -198,6 +252,7 @@ routerLists.route('/getLists')
     
 // routes for /api/superheroInfo/lists/:listName/addSuperhero/:superheroId
 routerLists.route('/:listName/addSuperhero/:superheroId')
+    // STEP 6 FOR BACKEND
     // add a superhero to a given list
     .post(sanitizeInput, (req, res) => {
         const listName = req.params.listName;
@@ -227,6 +282,7 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
 
 // routes for /api/superheroInfo/lists/:listName/superheroes
 routerLists.route('/:listName/superheroes')
+    // STEP 7 FOR BACKEND
     // get a list of superheroes saved in a given list
     .get(sanitizeInput, (req, res) => {
         const listName = req.params.listName;
@@ -242,6 +298,7 @@ routerLists.route('/:listName/superheroes')
 
 // routes for /api/superheroInfo/lists/:listName/deleteList
 routerLists.route('/:listName/deleteList')
+    // STEP 8 FOR BACKEND
     // delete a superhero from a given list
     .delete(sanitizeInput, (req, res) => {
         const listName = req.params.listName;
@@ -258,6 +315,7 @@ routerLists.route('/:listName/deleteList')
 
 // routes for /api/superheroInfo/lists/:listName/getSuperheroesDetails
 routerLists.route('/:listName/getSuperheroesDetails')
+    // STEP 9 FOR BACKEND
     // get a list of names, information, and powers of all superheroes saved in a given list
     .get(sanitizeInput, (req, res) => {
         const listName = req.params.listName;
@@ -288,6 +346,7 @@ routerLists.route('/:listName/getSuperheroesDetails')
         }
     });
 
+// STEP 2 FOR BACKEND
 // function to get superhero powers by name
 function getSuperheroPowers(superheroName) {
     const powers = [];
