@@ -24,18 +24,6 @@ body {
     border: solid black 0px
 }
 
-@keyframes gradientAnimation {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
 h1 {
     color: rgb(48, 48, 48);
     font-size: 50px;
@@ -54,27 +42,9 @@ h2 {
     line-height: 1.2;
 }
 
-.intro {
+.intro, .filter, .createList, .deleteList, .createdLists, .addSuperheroes, .results, #noResults {
     display: flex;
-    justify-content: center; /* Horizontal centering */
-    align-items: center;
-}
-
-.createList, .deleteList {
-    display: flex;
-    justify-content: center; /* Horizontal centering */
-    align-items: center;
-}
-
-.createdLists {
-    display: flex;
-    justify-content: center; /* Horizontal centering */
-    align-items: center;
-}
-
-.addSuperheroes {
-    display: flex;
-    justify-content: center; /* Horizontal centering */
+    justify-content: center;
     align-items: center;
 }
 
@@ -88,10 +58,21 @@ input, select {
     font-family: 'Mukta', sans-serif;
 }
 
-#nameDropdownFilter, #raceDropdownFilter, #pubDropdownFilter {
+select {
+    cursor: pointer;
+}
+
+#nameDropdownFilter, #raceDropdownFilter, #pubDropdownFilter, #powerDropdownFilter {
     display: none;
     width: 190px;
     background-color: #d8d4ca;
+}
+
+#nNameInput, #nRaceInput, #nPubInput, #nPowerInput {
+    display: none;
+    width: 100px;
+    background-color: #d8d4ca;
+    border: solid white 1px;
 }
 
 button {
@@ -108,12 +89,6 @@ button {
 
 button:hover {
     background-color: #a50759;
-}
-
-.results {
-    display: flex;
-    justify-content: center; /* Horizontal centering */
-    align-items: center; /* Vertical centering */
 }
 
 ol {
@@ -137,12 +112,11 @@ li {
     font-size: 17px;
     font-family: 'Mukta', sans-serif;
     text-align: left;
-    width: 530px;
+    width: 100%;
 }
 
 li:hover {
     background-color: #e5e5e5;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .sidenav {
@@ -167,12 +141,23 @@ li:hover {
 }
 
 .selected-btn {
-    background-color: #a50759
+    background-color: #a50759;
+    font-weight: bolder;
 }
 
 .listDetails li {
     padding: 3px;
-    width: 200px; /* Set your desired width */
-    white-space: nowrap; /* Prevent text from wrapping to the next line */
-    overflow: scroll; /* Hide any overflowing text */
+    width: 200px; 
+}
+
+#noResults {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    font-style: italic;
+    border: solid black 0px;
+    border-radius: 14px;
+    background-color: #fe8ba7;
+    padding: 8px;
+    margin: 5px 20px;
 }
