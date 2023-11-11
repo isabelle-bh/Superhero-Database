@@ -12,13 +12,21 @@
     </head>
     <body>
         <div id="mySidenav" class="sidenav">
-            <h2>view lists</h2>
+            <h2>select a list</h2>
             <div class="createdLists">
                 <ol id="listsContainer">
 
                 </ol>
             </div>
             <h2>details</h2>
+            <p class="filter">
+                <select id="listDropdownFilter" onchange="getListDetails()">
+                    <option value="name">Filter A-Z by Name</option>
+                    <option value="race">Filter A-Z by Race</option>
+                    <option value="publisher">Filter A-Z by Publisher</option>
+                    <option value="power">Filter High-Low by Powers</option>
+                </select>
+            </p>
             <div class="listDetails">
                 <ol id="listResults">
 
@@ -33,24 +41,38 @@
                 <h2>search for superhero: </h2>
                 <div class="intro">
                     <p class="search-boxes">
-                        <input type="text" id="nameInput" placeholder="name" oninput="searchByName()">
-                        <input type="text" id="raceInput" placeholder="race" oninput="searchByRace()">
-                        <input type="text" id="pubInput" placeholder="publisher" oninput="searchByPublisher()">
-                        <input type="text" id="powerInput" placeholder="power" oninput="searchByPower()">
+                        <input type="text" id="nameInput" placeholder="name" oninput="searchByName()" onclick="searchByName()">
+                        <input type="text" id="raceInput" placeholder="race" oninput="searchByRace()" onclick="searchByRace()">
+                        <input type="text" id="pubInput" placeholder="publisher" oninput="searchByPublisher()" onclick="searchByPublisher()">
+                        <input type="text" id="powerInput" placeholder="power" oninput="searchByPower()" onclick="searchByPower()">
+                        <input type="text" id="nNameInput" placeholder="no. of matches" oninput="searchByName()">
+                        <input type="text" id="nRaceInput" placeholder="no. of matches" oninput="searchByRace()">
+                        <input type="text" id="nPubInput" placeholder="no. of matches" oninput="searchByPublisher()">
+                        <input type="text" id="nPowerInput" placeholder="no. of matches" oninput="searchByPower()">
+
                         <select id="nameDropdownFilter" onchange="searchByName()">
                             <option value="name">Filter A-Z by Name</option>
                             <option value="race">Filter A-Z by Race</option>
                             <option value="publisher">Filter A-Z by Publisher</option>
+                            <option value="power">Filter High-Low by Powers</option>
                         </select>
                         <select id="raceDropdownFilter" onchange="searchByRace()">
                             <option value="name">Filter A-Z by Name</option>
                             <option value="race">Filter A-Z by Race</option>
                             <option value="publisher">Filter A-Z by Publisher</option>
+                            <option value="power">Filter High-Low by Powers</option>
                         </select>
                         <select id="pubDropdownFilter" onchange="searchByPublisher()">
                             <option value="name">Filter A-Z by Name</option>
                             <option value="race">Filter A-Z by Race</option>
                             <option value="publisher">Filter A-Z by Publisher</option>
+                            <option value="power">Filter High-Low by Powers</option>
+                        </select>
+                        <select id="powerDropdownFilter" onchange="searchByPower()">
+                            <option value="name">Filter A-Z by Name</option>
+                            <option value="race">Filter A-Z by Race</option>
+                            <option value="publisher">Filter A-Z by Publisher</option>
+                            <option value="power">Filter High-Low by Powers</option>
                         </select>
                     </p>                
                 </div>
@@ -68,9 +90,11 @@
                         <button id="createListButton" onclick="createList()">submit</button>
                     </p>
                 </div>
-                <span id="status">
+                <div class="results">
+                    <ol id="createList">
 
-                </span>
+                    </ol>
+                </div>
             </div>
             <div class="lists">
                 <h2>add superhero to list</h2>
@@ -95,9 +119,11 @@
                         <button id="deleteListButton" onclick="deleteList()">submit</button>
                     </p>
                 </div>
-                <span id="status">
+                <div class="results">
+                    <ol id="deleteList">
 
-                </span>
+                    </ol>
+                </div>
             </div>
         </div>     
         <script src="script.js"></script>
