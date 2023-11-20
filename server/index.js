@@ -4,7 +4,7 @@ const superheroInfo = require('./superhero_info.json');
 const superheroPowers = require('./superhero_powers.json'); // Load superhero_powers data
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 4000;
 const router = express.Router();
 const routerLists = express.Router();
 
