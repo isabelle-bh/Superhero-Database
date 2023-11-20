@@ -1,0 +1,163 @@
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: pink;
+  font-family: 'Mukta', sans-serif;
+  font-weight: 300;
+  font-size: 30px;
+}
+
+.header {
+  background-color: #EFEBE0;
+  width: 100%;
+  height: auto;
+  top: 0px;
+  left: 0px;
+  padding: 0 20px;
+  padding-bottom: 20px;
+  text-align: center;
+  margin: 0;
+  border: solid black 0px
+}
+
+h1 {
+  color: rgb(48, 48, 48);
+  font-size: 50px;
+  letter-spacing: 6px;
+  margin: 0;
+  font-family: 'Pacifico', cursive;
+}
+h2 {
+  padding: 0px 20px;
+  text-align: center;
+  font-weight: 400;
+  font-size: 40px;
+  margin: 15px 0;
+  color: rgb(48, 48, 48);
+  font-family: 'Pacifico', cursive;
+  line-height: 1.2;
+}
+
+.intro, .filter, .createList, .deleteList, .createdLists, .addSuperheroes, .results, #noResults {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+input, select {
+  padding: 10px;
+  border: 0px solid;
+  border-radius: 14px;
+  font-size: 16px;
+  font-style: italic;
+  background-color: #EFEBE0;
+  font-family: 'Mukta', sans-serif;
+}
+
+select {
+  cursor: pointer;
+}
+
+#nameDropdownFilter, #raceDropdownFilter, #pubDropdownFilter, #powerDropdownFilter {
+  display: none;
+  width: 190px;
+  background-color: #d8d4ca;
+}
+
+#nNameInput, #nRaceInput, #nPubInput, #nPowerInput {
+  display: none;
+  width: 100px;
+  background-color: #d8d4ca;
+  border: solid white 1px;
+}
+
+button {
+  padding: 10px;
+  margin-left: 5px;
+  background-color: #FB6B90;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  cursor: pointer;
+  font-family: 'Mukta', sans-serif;
+}
+
+button:hover {
+  background-color: #a50759;
+}
+
+ol {
+  margin: 15px 0;
+  max-width: 940px;
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  align-items: left;
+  padding: 0;
+  list-style: none; 
+}
+
+li {
+  border: 0px solid;
+  border-radius: 14px;
+  margin: 5px 5px;
+  padding: 5px;
+  background-color: #FB6B90;
+  font-weight: 400;
+  font-size: 17px;
+  font-family: 'Mukta', sans-serif;
+  text-align: left;
+  width: 100%;
+}
+
+li:hover {
+  background-color: #e5e5e5;
+}
+
+.sidenav {
+  height: 100%;
+  width: 250px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #d8d4ca;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+.main {
+  margin-left: 250px;
+}
+
+.list-button {
+  width: 180px;
+  margin-bottom: 10px;
+}
+
+.selected-btn {
+  background-color: #a50759;
+  font-weight: bolder;
+}
+
+.listDetails li {
+  padding: 3px;
+  width: 200px; 
+}
+
+#noResults {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  font-style: italic;
+  border: solid black 0px;
+  border-radius: 14px;
+  background-color: #fe8ba7;
+  padding: 8px;
+  margin: 5px 20px;
+}
