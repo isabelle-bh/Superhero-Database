@@ -3,6 +3,8 @@
 const superheroInfo = require('./superhero_info.json');
 const superheroPowers = require('./superhero_powers.json'); // Load superhero_powers data
 const express = require('express');
+const List = require('./list'); // Import your List model
+
 const app = express();
 const port = 4000;
 const router = express.Router();
@@ -178,8 +180,6 @@ router.route('/searchFunction/:field/:pattern/:n?')
         }
     });
 
-
-
 // routes for /api/superheroInfo/superheroes-by-power/:power
 router.route('/superheroes-by-power/:power')
     // get a list of superheroes with a given power
@@ -221,62 +221,81 @@ routerLists.use(express.json());
 routerLists.use(sanitizeInput);
 
 // create a new superhero list
-const superheroLists = {}; // Store superhero lists
-
 // routes for /api/superheroInfo/lists/createList
 routerLists.route('/createList')
-    // STEP 5 FOR BACKEND
-    // create a new superhero list
-    .post(sanitizeInput, (req, res) => {
-        const listName = req.body.listName;
+  // create a new superhero list
+  .post(async (req, res) => {
+    const listName = req.body.listName;
 
-        // Check if the list name is missing or already exists
-        if (!listName) {
-            res.status(400).send('Missing list name');
-        } else if (superheroLists[listName]) {
-            res.status(400).send('List name already exists');
-        } else {
-            // Create the list
-            superheroLists[listName] = [];
-            res.send(`Superhero list '${listName}' created successfully`);
-        }
-    });
+    try {
+      // Check if the list name is missing
+      if (!listName) {
+        return res.status(400).json({ error: 'Missing list name' });
+      }
+  
+      // Check if the list name already exists
+      const existingList = await List.findOne({ name: listName });
+      if (existingList) {
+        return res.status(400).json({ error: 'List name already exists' });
+      }
+  
+      // Create the list in MongoDB
+      const newList = await List.create({ name: listName, superheroes: [] });
+      res.json(newList);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 // routes for /api/superheroInfo/lists/getLists
 routerLists.route('/getLists')
     // get a list of superhero lists
-    .get((req, res) => {
-        const listNames = Object.keys(superheroLists);
-        res.send(listNames);
+    .get(async (req, res) => {
+        try {
+            const lists = await List.find({}, 'name');
+            const listNames = lists.map((list) => list.name);
+            res.send(listNames);
+          } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+          }
     });
     
 // routes for /api/superheroInfo/lists/:listName/addSuperhero/:superheroId
 routerLists.route('/:listName/addSuperhero/:superheroId')
     // STEP 6 FOR BACKEND
     // add a superhero to a given list
-    .post(sanitizeInput, (req, res) => {
+    .post(async (req, res) => {
         const listName = req.params.listName;
         const superheroId = parseInt(req.params.superheroId);
-
-        // Check if the list name is missing
-        if (!superheroLists[listName]) {
-            res.status(404).send(`Superhero list '${listName}' does not exist`);
-        } else {
-            // Find the superhero in superhero_info by ID
-            const superhero = superheroInfo.find(p => p.id === superheroId);
-            if (superhero) {
-                // Check if the superhero is already in the list
-                if (superheroLists[listName].includes(superhero.id)) {
-                    res.status(400).send('Superhero already in list.');
-                } else {
-                    // Add the superhero to the list
-                    superheroLists[listName].push(superhero.id);
-                    res.send(`Superhero added to list '${listName}'`);
-                }  
-            } else {
-                // Send 404 if the superhero is not found
-                res.status(404).send(`Superhero with ID ${superheroId} not found`);
+      
+        try {
+          // Check if the list name is missing
+          const existingList = await List.findOne({ name: listName });
+          if (!existingList) {
+            return res.status(404).send(`Superhero list '${listName}' does not exist`);
+          }
+      
+          // Find the superhero in superhero_info by ID
+          const superhero = superheroInfo.find((s) => s.id === superheroId);
+          if (superhero) {
+            // Check if the superhero is already in the list
+            if (existingList.superheroes.includes(superhero.id)) {
+              return res.status(400).send('Superhero already in list.');
             }
+      
+            // Add the superhero to the list in MongoDB
+            existingList.superheroes.push(superhero.id);
+            await existingList.save();
+            res.send(`Superhero added to list '${listName}'`);
+          } else {
+            // Send 404 if the superhero is not found
+            res.status(404).send(`Superhero with ID ${superheroId} not found`);
+          }
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
@@ -284,15 +303,21 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
 routerLists.route('/:listName/superheroes')
     // STEP 7 FOR BACKEND
     // get a list of superheroes saved in a given list
-    .get(sanitizeInput, (req, res) => {
+    .get(async (req, res) => {
         const listName = req.params.listName;
 
-        // Check if the list does not exist
-        if (!superheroLists[listName]) {
-            res.status(404).send(`Superhero list '${listName}' does not exist`);
-        } else {
-            // send the list of superheroes
-            res.send(superheroLists[listName]);
+        try {
+          // Check if the list does not exist
+          const existingList = await List.findOne({ name: listName });
+          if (!existingList) {
+            return res.status(404).send(`Superhero list '${listName}' does not exist`);
+          }
+      
+          // Send the list of superheroes
+          res.send(existingList.superheroes);
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
@@ -300,16 +325,22 @@ routerLists.route('/:listName/superheroes')
 routerLists.route('/:listName/deleteList')
     // STEP 8 FOR BACKEND
     // delete a superhero from a given list
-    .delete(sanitizeInput, (req, res) => {
+    .delete(async (req, res) => {
         const listName = req.params.listName;
 
-        // Check if the list does not exist
-        if (!superheroLists[listName]) {
-            res.status(404).send(`Superhero list '${listName}' does not exist`);
-        } else {
-            // Delete the list
-            delete superheroLists[listName];
-            res.send(`Superhero list '${listName}' deleted`);
+        try {
+          // Check if the list does not exist
+          const existingList = await List.findOne({ name: listName });
+          if (!existingList) {
+            return res.status(404).send(`Superhero list '${listName}' does not exist`);
+          }
+      
+          // Delete the list from MongoDB
+          await existingList.deleteOne();
+          res.send(`Superhero list '${listName}' deleted`);
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
@@ -317,32 +348,41 @@ routerLists.route('/:listName/deleteList')
 routerLists.route('/:listName/getSuperheroesDetails')
     // STEP 9 FOR BACKEND
     // get a list of names, information, and powers of all superheroes saved in a given list
-    .get(sanitizeInput, (req, res) => {
+    .get(async (req, res) => {
         const listName = req.params.listName;
 
-        // Check if the list does not exist
-        if (!superheroLists[listName]) {
-            res.status(404).send(`Superhero list '${listName}' does not exist`);
-        } else {
-            // Get the list of superhero IDs
-            const superheroIds = superheroLists[listName];
-            const superheroDetails = [];
-
-            // Get the superhero details
-            superheroIds.forEach(superheroId => {
-                const superhero = superheroInfo.find(p => p.id === superheroId);
-                if (superhero) {
-                    const powers = getSuperheroPowers(superhero.name);
-                    superheroDetails.push({
-                        id: superhero.id,
-                        name: superhero.name,
-                        information: superhero,
-                        powers: powers,
-                    });
-                }
-            });
-            // Send the superhero details
-            res.send(superheroDetails);
+        try {
+          // Check if the list does not exist
+          const existingList = await List.findOne({ name: listName });
+          if (!existingList) {
+            return res.status(404).send(`Superhero list '${listName}' does not exist`);
+          }
+      
+          // Get the list of superhero IDs
+          const superheroIds = existingList.superheroes;
+          const superheroDetails = [];
+      
+          // Get the superhero details
+          for (const superheroId of superheroIds) {
+            // fix this later isa
+            const superhero = superheroInfo.find(p => p.id == superheroId);
+            console.log(superheroInfo);
+            if (superhero) {
+                const powers = getSuperheroPowers(superhero.name);
+                superheroDetails.push({
+                    id: superhero.id,
+                    name: superhero.name,
+                    information: superhero,
+                    powers: powers,
+                });
+            }
+          }
+      
+          // Send the superhero details
+          res.send(superheroDetails);
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
