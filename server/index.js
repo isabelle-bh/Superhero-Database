@@ -3,12 +3,14 @@
 const superheroInfo = require('./superhero_info.json');
 const superheroPowers = require('./superhero_powers.json'); // Load superhero_powers data
 const express = require('express');
-const List = require('./list'); // Import your List model
+const List = require('./list');
+const User = require('./user')
 
 const app = express();
 const port = 4000;
 const router = express.Router();
 const routerLists = express.Router();
+const routerUsers = express.Router();
 
 // STEP 10 FOR BACKEND
 // middleware to sanitize input
@@ -212,9 +214,10 @@ router.route('/superheroes-by-power/:power')
         }
     });
 
-
 // install the router at /api/superheroInfo
 app.use('/api/superheroInfo', router);
+
+// SUPERHERO LIST HANDLING
 
 // parse data in body as JSON
 routerLists.use(express.json());
@@ -264,7 +267,6 @@ routerLists.route('/getLists')
     
 // routes for /api/superheroInfo/lists/:listName/addSuperhero/:superheroId
 routerLists.route('/:listName/addSuperhero/:superheroId')
-    // STEP 6 FOR BACKEND
     // add a superhero to a given list
     .post(async (req, res) => {
         const listName = req.params.listName;
@@ -301,7 +303,6 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
 
 // routes for /api/superheroInfo/lists/:listName/superheroes
 routerLists.route('/:listName/superheroes')
-    // STEP 7 FOR BACKEND
     // get a list of superheroes saved in a given list
     .get(async (req, res) => {
         const listName = req.params.listName;
@@ -323,7 +324,6 @@ routerLists.route('/:listName/superheroes')
 
 // routes for /api/superheroInfo/lists/:listName/deleteList
 routerLists.route('/:listName/deleteList')
-    // STEP 8 FOR BACKEND
     // delete a superhero from a given list
     .delete(async (req, res) => {
         const listName = req.params.listName;
@@ -346,7 +346,6 @@ routerLists.route('/:listName/deleteList')
 
 // routes for /api/superheroInfo/lists/:listName/getSuperheroesDetails
 routerLists.route('/:listName/getSuperheroesDetails')
-    // STEP 9 FOR BACKEND
     // get a list of names, information, and powers of all superheroes saved in a given list
     .get(async (req, res) => {
         const listName = req.params.listName;
@@ -386,7 +385,6 @@ routerLists.route('/:listName/getSuperheroesDetails')
         }
     });
 
-// STEP 2 FOR BACKEND
 // function to get superhero powers by name
 function getSuperheroPowers(superheroName) {
     const powers = [];
@@ -409,7 +407,61 @@ function getSuperheroPowers(superheroName) {
 // install the router at /api/superheroInfo/lists
 app.use('/api/superheroInfo/lists', routerLists);
 
-// start the server
+// USER LOGIN AND REGISTRATION
+routerUsers.use(express.json());
+
+// Signup route
+routerUsers.post('/signup', async (req, res) => {
+    const { username, password } = req.body;
+  
+    try {
+      // Check if the username is already taken
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+  
+      // Hash the password before saving it
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Create a new user
+      const newUser = new User({ username, password: hashedPassword });
+      await newUser.save();
+  
+      res.status(201).json({ message: 'User created successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  // Login route
+  routerUsers.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+  
+    try {
+      // Check if the user exists
+      const user = await User.findOne({ username });
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+  
+      // Compare the provided password with the hashed password in the database
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+  
+      res.status(200).json({ message: 'Login successful' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+app.use('/api/users', routerUsers);
+
+// START THE SERVER
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
