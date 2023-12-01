@@ -1,41 +1,50 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react';
 import '../App.css';
 
 const SideNav = () => {
-    const [selectedFilter, setSelectedFilter] = useState('name');
+  const [selectedFilter, setSelectedFilter] = useState('name');
+  const [lists, setLists] = useState([]);
 
-    const handleFilterChange = (e) => {
-        setSelectedFilter(e.target.value);
-    };
+  const handleFilterChange = (e) => {
+    setSelectedFilter(e.target.value);
+  };
 
-    return (
-        <div id="mySideNav" className="sideNav">
-            <h2>select a list</h2>
-            <div className="createdLists">
-                <ol id="listsContainer">
+  const getLists = () => {
+    // fetching the data from the api
+    fetch("/api/superheroInfo/lists/getLists")
+      .then((res) => res.json())
+      .then((data) => {
+        setLists(data);
+      });
+  };
 
-                </ol>
-            </div>
-            <h2>details</h2>
-            <p className="filter">
-                <select
-                    id="filter"
-                    value={selectedFilter}
-                    onChange={handleFilterChange}
-                >
-                    <option value="name">Filter A-Z by Name</option>
-                    <option value="race">Filter A-Z by Race</option>
-                    <option value="publisher">Filter A-Z by Publisher</option>
-                    <option value="power">Filter High-Low by Powers</option>
-                </select>
-            </p>
-            <div className="listDetails">
-                <ol id="listResults">
+  useEffect(() => {
+    // Fetch lists when the component mounts
+    getLists();
+  }, []);
 
-                </ol>
-            </div>
-        </div>
-    );
+  return (
+    <div id="mySideNav" className="sideNav">
+      <h2>select a list</h2>
+      <div className="createdLists">
+        <ul id="listsContainer">
+          {lists.map((listName) => (
+            <button
+              key={listName}
+              className="list-button"
+              data-listname={listName}
+            >
+              {listName}
+            </button>
+          ))}
+        </ul>
+      </div>
+      <h2>details</h2>
+      <div className="listDetails">
+        <ol id="listResults"></ol>
+      </div>
+    </div>
+  );
 };
 
 export default SideNav;
