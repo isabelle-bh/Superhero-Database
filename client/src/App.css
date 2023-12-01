@@ -28,8 +28,9 @@ h1 {
   color: rgb(48, 48, 48);
   font-size: 50px;
   letter-spacing: 6px;
-  margin: 0;
+  margin: 20px auto;
   font-family: 'Pacifico', cursive;
+  width: 85%;
 }
 h2 {
   padding: 0px 20px;
@@ -42,10 +43,36 @@ h2 {
   line-height: 1.2;
 }
 
-.intro, .filter, .createList, .deleteList, .createdLists, .addSuperheroes, .results, #noResults {
+.intro, .createList, .deleteList, .createdLists, .addSuperheroes, .results, #noResults {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.menu, .login, .signup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 10px;
+  padding-bottom: 30px;
+}
+
+
+
+.back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 10px;
+}
+
+hr {
+  width: 85%;
+  border: 0px solid;
+  border-bottom: 2px solid #353434;
+  margin: 20px auto;
 }
 
 input, select {
@@ -60,12 +87,6 @@ input, select {
 
 select {
   cursor: pointer;
-}
-
-#nameDropdownFilter, #raceDropdownFilter, #pubDropdownFilter, #powerDropdownFilter {
-  display: none;
-  width: 190px;
-  background-color: #d8d4ca;
 }
 
 #nNameInput, #nRaceInput, #nPubInput, #nPowerInput {
@@ -119,15 +140,24 @@ li:hover {
   background-color: #e5e5e5;
 }
 
-.sidenav {
-  height: 100%;
+/* App.css */
+body {
+  margin: 0;
+}
+
+/* Set a margin for the content to prevent it from being hidden behind the side nav */
+.content {
+  margin-left: 250px; /* Adjust this based on your sideNav width */
+}
+
+/* SideNav.css */
+.sideNav {
   width: 250px;
   position: fixed;
-  z-index: 1;
   top: 0;
   left: 0;
+  height: 100%;
   background-color: #d8d4ca;
-  overflow-x: hidden;
   padding-top: 20px;
 }
 
@@ -138,6 +168,12 @@ li:hover {
 .list-button {
   width: 180px;
   margin-bottom: 10px;
+}
+
+#listsContainer {
+  width: 80%;
+  justify-content: center;
+  text-align: center;
 }
 
 .selected-btn {
@@ -160,4 +196,12 @@ li:hover {
   background-color: #fe8ba7;
   padding: 8px;
   margin: 5px 20px;
+}
+
+.login input {
+  margin: 5px;
+}
+
+.signup input {
+  margin: 5px;
 }
