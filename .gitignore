@@ -3,3 +3,4 @@ superhero_powers.json
 assets
 node_modules
 .vscode
+.env
