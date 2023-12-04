@@ -9,14 +9,11 @@ const Menu = ({ isAuthenticated }) => {
             <h1>welcome to my superhero database!</h1>
             <hr></hr>
         </div>
-        {isAuthenticated ? (
-            <Link to="/dashboard"><button>Dashboard</button></Link>
-        ) : (
-            <div className="login-buttons">
+        <div className="login-buttons">
             <Link to="/login"><button>Login</button></Link>
             <Link to="/signup"><button>Signup</button></Link>
-            </div>
-        )}
+            <br></br><Link to="/unauthorized-dashboard"><button>public dashboard</button></Link>
+        </div>
     </div>
   );
 };
