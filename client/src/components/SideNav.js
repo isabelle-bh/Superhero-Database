@@ -5,7 +5,7 @@ const SideNav = () => {
   const [lists, setLists] = useState([]);
   const [selectedList, setSelectedList] = useState(null);
   const [listDetails, setListDetails] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(
+  const [isAuthenticated] = useState(
     localStorage.getItem('isAuthenticated') === 'true'
   );
 
@@ -109,27 +109,25 @@ const SideNav = () => {
             <ul id="listsContainer">
               {lists.length > 0 ? (
                 lists.map((list) => (
-                  <li key={list._id} className="list-item">
                     <button
                       className={`list-button ${selectedList && selectedList._id === list._id ? 'selected' : ''}`}
                       onClick={() => handleSelectList(list)}
                     >
                       {list.name}
-                    </button>
                     {selectedList && selectedList._id === list._id && (
                       <div className="expanded-info">
                         <h3>List Description: {selectedList.desc}</h3>
                         <h3>Superheroes in the list:</h3>
-                        <ul>
+                        <ul className="superheroes">
                           {listDetails.map((hero) => (
-                            <li key={hero.id}>
-                              ID: {hero.id}, NAME: {hero.name}, RACE: {hero.information.Race || 'Unknown'}, PUB: {hero.information.Publisher || 'Unknown'}, POWERS: {hero.powers}
+                            <li key={hero.id} className="superheroes">
+                              ID: {hero.id} <br></br> NAME: {hero.name} <br></br> RACE: {hero.information.Race || 'Unknown'} <br></br> PUB: {hero.information.Publisher || 'Unknown'} <br></br> POWERS: {hero.powers}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
-                  </li>
+                    </button>
                 ))
               ) : (
                 <p className="noResults">No lists available</p>
@@ -145,7 +143,6 @@ const SideNav = () => {
             <ul id="listsContainer">
               {lists.length > 0 ? (
                 lists.map((list) => (
-                  <li key={list._id} className="list-item" id="publicLists">
                     <button
                       className={`list-button ${selectedList && selectedList._id === list._id ? 'selected' : ''}`}
                       onClick={() => handleSelectList(list)}
@@ -156,21 +153,19 @@ const SideNav = () => {
                       No. Of Heroes: {list.superheroes.length} <br />
                       Last Modified: {list.updatedTime} <br />
                       Rating: {list.rating}
-                    </button>
-                    {selectedList && selectedList._id === list._id && (
+                      {selectedList && selectedList._id === list._id && (
                       <div className="expanded-info">
                         <h3>Superheroes in the list:</h3>
-                        <ul>
+                        <ul className="superheroes">
                           {listDetails.map((hero) => (
-                            <li key={hero.id} className="list-item">
+                            <li key={hero.id} className="superheroes">
                               ID: {hero.id}, NAME: {hero.name}, RACE: {hero.information.Race || 'Unknown'}, PUB: {hero.information.Publisher || 'Unknown'}, POWERS: {hero.powers}
                             </li>
                           ))}
                         </ul>
-                        {/* Add any additional information or actions here */}
                       </div>
                     )}
-                  </li>
+                    </button>
                 ))
               ) : (
                 <p className="noResults">No lists available</p>

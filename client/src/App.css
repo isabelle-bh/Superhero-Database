@@ -179,12 +179,12 @@ body {
 #listsContainer {
   width: 80%;
   justify-content: center;
-  text-align: center;
+  text-align: left;
 }
 
-.expanded-info {
-  padding: 3px;
-  width: 200px; 
+ul .superheroes {
+  width: 98%;
+  justify-content: center;
 }
 
 .selected-btn {
