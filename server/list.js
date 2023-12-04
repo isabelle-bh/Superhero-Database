@@ -8,12 +8,13 @@ const listSchema = new mongoose.Schema({
   desc: String,
   visibility: String,
   username: String,
-  rating: {
+  avgRating: {
     type: Number,
     min: 1,
     max: 10
   },
   comments: [String],
+  updatedTime: { type: Date, default: Date.now },
 });
 
 const List = mongoose.model('List', listSchema);

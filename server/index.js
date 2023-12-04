@@ -298,6 +298,7 @@ routerLists.route('/createList').post(authenticate, async (req, res) => {
   const desc = req.body.desc;
   const email = req.user.email;
   const visibility = req.body.visibility;
+  const updatedTime = Date.now();
 
   try {
     // Check if the list name is missing
@@ -316,7 +317,7 @@ routerLists.route('/createList').post(authenticate, async (req, res) => {
     }
 
     // Create the list in MongoDB and associate it with the user
-    const newList = await List.create({ name: listName, superheroes: [], user: email, desc: desc, visibility: visibility, username: username });
+    const newList = await List.create({ name: listName, superheroes: [], user: email, desc: desc, visibility: visibility, username: username, updatedTime: updatedTime });
     res.json(newList);
   } catch (err) {
     console.error(err);
@@ -355,10 +356,10 @@ routerLists.route('/getLists')
 
 // routes for /api/superheroInfo/lists/getPublicLists
 routerLists.route('/getPublicLists')
-  // get a list of superhero lists with visibility "public"
+  // get a list of superhero lists with visibility "public", sorted by updatedTime
   .get(async (req, res) => {
     try {
-      const publicLists = await List.find({ visibility: 'public' }).limit(10);
+      const publicLists = await List.find({ visibility: 'public' }).sort({ updatedTime: -1 }).limit(10);
       res.send(publicLists);
     } catch (err) {
       console.error(err);
@@ -373,6 +374,7 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
         const listName = req.params.listName;
         const superheroId = parseInt(req.params.superheroId);
         const email = req.user.email; // Assuming the user ID is stored in req.user
+        const updatedTime = Date.now();
       
         try {
           // Check if the list name is missing
@@ -396,6 +398,7 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
       
             // Add the superhero to the list in MongoDB
             existingList.superheroes.push(superhero.id);
+            existingList.updatedTime = updatedTime;
             await existingList.save();
             res.send(`Superhero added to list '${listName}'`);
           } else {
@@ -407,6 +410,53 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
           res.status(500).json({ error: 'Internal Server Error' });
         }
     });
+
+// routes for /api/superheroInfo/lists/:listName/removeSuperhero/:superheroId
+routerLists.route('/:listName/removeSuperhero/:superheroId')
+    // remove a superhero from a given list
+    .post(authenticate, async (req, res) => {
+        const listName = req.params.listName;
+        const superheroId = parseInt(req.params.superheroId);
+        const email = req.user.email; // Assuming the user ID is stored in req.user
+        const updatedTime = Date.now();
+      
+        try {
+            // Check if the list name is missing
+            const existingList = await List.findOne({ name: listName });
+            if (!existingList) {
+                return res.status(404).send(`Superhero list '${listName}' does not exist`);
+            }
+      
+            // Check if the logged-in user is the owner of the list
+            if (existingList.user !== email) {
+                return res.status(403).send('Unauthorized: You do not have permission to remove superheroes from this list');
+            }
+
+            // Find the superhero in superhero_info by ID
+            const superhero = superheroInfo.find((s) => s.id === superheroId);
+            if (superhero) {
+                // Check if the superhero is in the list
+                const superheroIndex = existingList.superheroes.indexOf(superhero.id);
+                if (superheroIndex !== -1) {
+                    // Remove the superhero from the list in MongoDB
+                    existingList.superheroes.splice(superheroIndex, 1);
+                    existingList.updatedTime = updatedTime;
+                    await existingList.save();
+                    res.send(`Superhero removed from list '${listName}'`);
+                } else {
+                    // Send 400 if the superhero is not in the list
+                    res.status(400).send('Superhero is not in the list.');
+                }
+            } else {
+                // Send 404 if the superhero is not found
+                res.status(404).send(`Superhero with ID ${superheroId} not found`);
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
+
 
 // routes for /api/superheroInfo/lists/:listName/superheroes
 routerLists.route('/:listName/superheroes')
@@ -428,6 +478,58 @@ routerLists.route('/:listName/superheroes')
           res.status(500).json({ error: 'Internal Server Error' });
         }
     });
+
+// Update list name
+routerLists.route('/:listName/updateListName')
+    .post(authenticate, async (req, res) => {
+        const { listName } = req.params;
+        const { newListName } = req.body;
+        const email = req.user.email; // Assuming the user ID is stored in req.user
+        const updatedTime = Date.now();
+
+        try {
+            // Check if the list name is missing
+            const existingList = await List.findOne({ name: listName, user: email });
+            if (!existingList) {
+                return res.status(404).send(`Superhero list '${listName}' does not exist or you don't have permission.`);
+            }
+
+            // Update the list name
+            existingList.name = newListName;
+            existingList.updatedTime = updatedTime;
+            await existingList.save();
+
+            res.status(200).send(`List name updated to '${newListName}'`);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
+
+routerLists.route('/:listName/updateVisibility')
+  .post(authenticate, async (req, res) => {
+    const { listName } = req.params;
+    const { visibility } = req.body;
+    const email = req.user.email; // Assuming the user ID is stored in req.user
+    const updatedTime = Date.now();
+
+    try {
+      // Check if the list name is missing
+      const existingList = await List.findOne({ name: listName, user: email });
+      if (!existingList) {
+          return res.status(404).send(`Superhero list '${listName}' does not exist or you don't have permission.`);
+      }
+
+      existingList.visibility = visibility;
+      existingList.updatedTime = updatedTime;
+      await existingList.save();
+
+      res.status(200).send(`List visibility updated to ${visibility}`); // Respond with the updated list
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
 // routes for /api/superheroInfo/lists/:listName/deleteList
 routerLists.route('/:listName/deleteList')
