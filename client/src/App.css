@@ -49,7 +49,7 @@ h2 {
   align-items: center;
 }
 
-.menu, .login, .signup {
+.menu, .login, .signup, .admin {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -59,7 +59,9 @@ h2 {
   padding-bottom: 30px;
 }
 
-
+.signout p {
+  font-family: 'Pacifico', cursive;
+}
 
 .back-button {
   position: fixed;
@@ -89,13 +91,6 @@ select {
   cursor: pointer;
 }
 
-#nNameInput, #nRaceInput, #nPubInput, #nPowerInput {
-  display: none;
-  width: 100px;
-  background-color: #d8d4ca;
-  border: solid white 1px;
-}
-
 button {
   padding: 10px;
   margin-left: 5px;
@@ -112,6 +107,13 @@ button:hover {
   background-color: #a50759;
 }
 
+.selected {
+  background-color: #ce3158;
+  color: white;
+  font-weight: bolder;
+  border: solid rgb(59, 58, 58) 3px;
+}
+
 ol {
   margin: 15px 0;
   max-width: 940px;
@@ -120,7 +122,7 @@ ol {
   justify-content: center;
   align-items: left;
   padding: 0;
-  list-style: none; 
+  list-style: none;
 }
 
 li {
@@ -129,15 +131,18 @@ li {
   margin: 5px 5px;
   padding: 5px;
   background-color: #FB6B90;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 17px;
   font-family: 'Mukta', sans-serif;
-  text-align: left;
-  width: 100%;
+  text-align: center;
+  width: 40%;
+  color: white;
+  list-style: none;
 }
 
 li:hover {
   background-color: #e5e5e5;
+  color: rgb(59, 58, 58);
 }
 
 /* App.css */
@@ -159,6 +164,7 @@ body {
   height: 100%;
   background-color: #d8d4ca;
   padding-top: 20px;
+  overflow: scroll;
 }
 
 .main {
@@ -176,6 +182,11 @@ body {
   text-align: center;
 }
 
+.expanded-info {
+  padding: 3px;
+  width: 200px; 
+}
+
 .selected-btn {
   background-color: #a50759;
   font-weight: bolder;
@@ -186,16 +197,18 @@ body {
   width: 200px; 
 }
 
-#noResults {
+.noResults {
   text-align: center;
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 17px;
+  font-weight: 600;
   font-style: italic;
   border: solid black 0px;
   border-radius: 14px;
   background-color: #fe8ba7;
   padding: 8px;
-  margin: 5px 20px;
+  margin: 5px auto;
+  font-family: 'Mukta', sans-serif;
+  width: 40%;
 }
 
 .login input {
@@ -205,3 +218,21 @@ body {
 .signup input {
   margin: 5px;
 }
+
+.search li {
+  margin: 5px auto;
+}
+
+.search-boxes {
+  display: flex;
+  width: 90%;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.search-boxes input {
+  flex: 1;
+  width: 150px;
+  margin: 5px; /* Fixed margin to create space between inputs */
+}
+
