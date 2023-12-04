@@ -1,4 +1,3 @@
-// SignupPage.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -10,7 +9,6 @@ const SignupPage = ({ isAuthenticated, setIsAuthenticated }) => {
 
   const handleSignup = async () => {
     try {
-      // Make an API request to your server to create a new user
       const response = await fetch('/api/users/signup', {
         method: 'POST',
         headers: {
@@ -19,15 +17,36 @@ const SignupPage = ({ isAuthenticated, setIsAuthenticated }) => {
         body: JSON.stringify({ username, email, password }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (response.ok) {
-        // If sign-up is successful, update isAuthenticated state and redirect to the dashboard
+      if (responseData.status === 'EMPTY INPUTS') {
+        alert('Please do not leave empty fields.');
+      } else if (responseData.status === 'INVALID EMAIL') {
+        alert('Please enter a valid email.');
+      } else if (responseData.status === 'USER EMAIL ALREADY EXISTS') {
+        alert('An account with this email already exists. Please try again.');
+      } else if (responseData.status === 'INVALID CHARS') {
+        alert('Username must be made of correct characters.');
+      } else if (responseData.status === 'PASSWORD TOO SHORT') {
+        alert('Password must be 8 characters or more.');
+      } else if (response.ok) {
+        // If sign-up is successful, update isAuthenticated state
         setIsAuthenticated(true);
-        navigate('/dashboard');
+
+        // Optionally, you can redirect to a login page or display a success message
+        // navigate('/login');
+        navigate('/');
+
+        console.log('Sign-up successful!');
+
+        if (username == 'administrator') {
+          alert('Sign-up successful! You are an administrator.');
+        } else {
+          alert('Sign-up successful! Please click on the verification link sent to your email to confirm your account.');
+        }
       } else {
         // If sign-up fails, you can handle the error, show a message, or redirect to another page
-        console.error('Sign-up failed:', data.message);
+        console.error('Sign-up failed:', responseData.message);
       }
     } catch (error) {
       console.error('Error during sign-up:', error);
@@ -36,36 +55,34 @@ const SignupPage = ({ isAuthenticated, setIsAuthenticated }) => {
 
   return (
     <div className="signup-page">
-        <Link to="/"><button className="back-button">back to menu</button></Link>
-        <div className="signup">
-            <h1>welcome to my superhero database!</h1>
-            <hr></hr>
-            <h2>Sign Up</h2>
-            {isAuthenticated ? (
-                <Link to="/dashboard"><button>go to dashboard</button></Link>
-            ) : (
-                <div>
-                <input
-                    type="text"
-                    placeholder="enter username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
-                <input
-                    type="email"
-                    placeholder="enter email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                    type="password"
-                    placeholder="enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <button onClick={handleSignup}>submit</button>
-                </div>
-            )}
+      <Link to="/">
+        <button className="back-button">back to menu</button>
+      </Link>
+      <div className="signup">
+        <h1>welcome to my superhero database!</h1>
+        <hr></hr>
+        <h2>Sign Up</h2>
+          <div>
+            <input
+              type="text"
+              placeholder="enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button onClick={handleSignup}>submit</button>
+          </div>
       </div>
     </div>
   );
