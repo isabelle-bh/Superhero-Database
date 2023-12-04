@@ -1,258 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import '../App.css'
+import '../App.css';
 
-const SearchByName = () => {
-  const [searchInput, setSearchInput] = useState('');
-  const [selectedResult, setSelectedResult] = useState(null);
+const Search = () => {
+  const [searchInputs, setSearchInputs] = useState({
+    name: '',
+    race: '',
+    publisher: '',
+    powers: ''
+  });
+
   const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedResult, setSelectedResult] = useState(null);
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (searchInput === '') {
-        setResults([]);
-      } else {
-        setIsLoading(true);
-        try {
-          const response = await fetch(`/api/superheroInfo/searchFunction/name/${searchInput}/0`);
-          const data = await response.json();
-          setResults(data);
-        } catch (error) {
-          console.error('Error fetching superhero data:', error);
-        } finally {
-          setIsLoading(false);
-        }
+      try {
+        const response = await fetch('/api/superheroInfo/searchFunction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(searchInputs),
+        });
+
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error('Error fetching superhero data:', error);
+      } finally {
       }
     };
 
     fetchResults();
-  }, [searchInput]);
+  }, [searchInputs]);
+
+  const handleInputChange = (field, value) => {
+    setSearchInputs((prevInputs) => ({ ...prevInputs, [field]: value }));
+  };
 
   const handleSelectResult = (result) => {
-    setSelectedResult(result);
+    // If the selected result is already expanded, close it
+    if (selectedResult && selectedResult.id === result.id) {
+      setSelectedResult(null);
+    } else {
+      // Otherwise, expand the selected result
+      setSelectedResult(result);
+    }
+  };
+
+  const handleSearchButtonClick = (heroName, heroPub) => {
+    const searchQuery = encodeURIComponent(heroName + ' ' + heroPub);
+    const ddgSearchUrl = `https://duckduckgo.com/?q=${searchQuery}`;
+
+    // Open a new tab with the DuckDuckGo search page
+    window.open(ddgSearchUrl, '_blank');
   };
 
   return (
-    <div>
-      <p className="search-boxes">
+    <div className="search">
+      <div className="search-boxes">
         <input
           type="text"
           id="nameInput"
           placeholder="try name..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          value={searchInputs.name}
+          onChange={(e) => handleInputChange('name', e.target.value)}
         />
-        {isLoading && <p>Loading...</p>}
-        {searchInput !== '' && (
-          <ul id="results">
-            {results.map((result) => (
-              <li key={result.id} onClick={() => handleSelectResult(result)}>
-                ID: {result.id}, NAME: {result.name}, PUB: {result.publisher || 'Unknown'}
-              </li>
-            ))}
-          </ul>
-        )}
-        {results.length === 0 && !isLoading && searchInput !== '' && <p>No results found</p>}
-      </p>
-
-      {selectedResult && (
-        <div>
-          <h2>{selectedResult.name}</h2>
-          <p>ID: {selectedResult.id}</p>
-          <p>RACE: {selectedResult.race || 'Unknown'}</p>
-          <p>PUB: {selectedResult.publisher || 'Unknown'}</p>
-          <p>POWERS: {selectedResult.powers}</p>
-          {/* Add other details you want to display */}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const SearchByRace = () => {
-  const [searchInput, setSearchInput] = useState('');
-  const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchResults = async () => {
-      // if the input is empty, clear the results
-      if (searchInput === '') {
-        setResults([]);
-      } else {
-        // Fetch results when the search bar is not empty
-        setIsLoading(true);
-        try {
-          const response = await fetch(`/api/superheroInfo/searchFunction/race/${searchInput}/0`);
-          const data = await response.json();
-          setResults(data);
-        } catch (error) {
-          console.error('Error fetching superhero data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchResults();
-  }, [searchInput]);
-
-  return (
-    <div>
-      <p className="search-boxes">
         <input
           type="text"
           id="raceInput"
           placeholder="try race..."
-          value={searchInput}
-          onInput={(e) => setSearchInput(e.target.value)}
+          value={searchInputs.race}
+          onChange={(e) => handleInputChange('race', e.target.value)}
         />
-        {isLoading && <p>Loading...</p>}
-        {searchInput !== '' && (
-          <ul id="results">
-            {results.map(e => (
-              <li key={e.id}>
-                ID: {e.id}, NAME: {e.name}, RACE: {e.race || 'Unknown'}, PUB: {e.publisher || 'Unknown'}, POWERS: {e.powers}
-              </li>
-            ))}
-          </ul>
-        )}
-        {results.length === 0 && !isLoading && searchInput !== '' && <p>No results found</p>}
-      </p>
-    </div>
-  );
-}
-
-const SearchByPublisher = () => {
-  const [searchInput, setSearchInput] = useState('');
-  const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchResults = async () => {
-      // if the input is empty, clear the results
-      if (searchInput === '') {
-        setResults([]);
-      } else {
-        // Fetch results when the search bar is not empty
-        setIsLoading(true);
-        try {
-          const response = await fetch(`/api/superheroInfo/searchFunction/publisher/${searchInput}/0`);
-          const data = await response.json();
-          setResults(data);
-        } catch (error) {
-          console.error('Error fetching superhero data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchResults();
-  }, [searchInput]);
-
-  return (
-    <div>
-      <p className="search-boxes">
         <input
           type="text"
           id="pubInput"
           placeholder="try publisher..."
-          value={searchInput}
-          onInput={(e) => setSearchInput(e.target.value)}
+          value={searchInputs.publisher}
+          onChange={(e) => handleInputChange('publisher', e.target.value)}
         />
-        {isLoading && <p>Loading...</p>}
-        {searchInput !== '' && (
-          <ul id="results">
-            {results.map(e => (
-              <li key={e.id}>
-                ID: {e.id}, NAME: {e.name}, RACE: {e.race || 'Unknown'}, PUB: {e.publisher || 'Unknown'}, POWERS: {e.powers}
-              </li>
-            ))}
-          </ul>
-        )}
-        {results.length === 0 && !isLoading && searchInput !== '' && <p>No results found</p>}
-      </p>
-    </div>
-  );
-}
-
-const SearchByPower = () => {
-  const [searchInput, setSearchInput] = useState('');
-  const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchResults = async () => {
-      // if the input is empty, clear the results
-      if (searchInput === '') {
-        setResults([]);
-      } else {
-        // Fetch results when the search bar is not empty
-        setIsLoading(true);
-        try {
-          const response = await fetch(`/api/superheroInfo/searchFunction/powers/${searchInput}/0`);
-          const data = await response.json();
-          setResults(data);
-        } catch (error) {
-          console.error('Error fetching superhero data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchResults();
-  }, [searchInput]);
-
-  return (
-    <div className="intro">
-      <p className="search-boxes">
         <input
           type="text"
           id="powerInput"
-          placeholder="Enter superhero power..."
-          value={searchInput}
-          onInput={(e) => setSearchInput(e.target.value)}
+          placeholder="try power..."
+          value={searchInputs.powers}
+          onChange={(e) => handleInputChange('powers', e.target.value)}
         />
-        {isLoading && <p>Loading...</p>}
-        {searchInput !== '' && (
-          <ul id="results">
-            {results.map(e => (
-              <li key={e.id}>
-                ID: {e.id}, NAME: {e.name}, RACE: {e.race || 'Unknown'}, PUB: {e.publisher || 'Unknown'}, POWERS: {e.powers}
-              </li>
-            ))}
-          </ul>
-        )}
-        {results.length === 0 && !isLoading && searchInput !== '' && <p>No results found</p>}
-      </p>
-    </div>
-  );
-}
-
-const SearchSection = () => {
-  return (
-    <div className="middle">
-      <h2>search for superhero: </h2>
-      <div className="intro">
-        <p className="search-boxes">
-            {/* search bars */}
-            <div className="search-boxes">
-              <SearchByName />
-              <SearchByRace />
-              <SearchByPublisher />
-              <SearchByPower />
-            </div>
-        </p>
       </div>
-      <div className="results">
-        <ol id="results">
-          {/* Your search results go here */}
-        </ol>
-      </div>
+      {results.length > 0 && (
+        <ul id="results">
+          {results.map((result) => (
+            <li
+              key={result.id}
+              className={selectedResult && selectedResult.id === result.id ? 'selected' : ''}
+              onClick={() => handleSelectResult(result)}
+            >
+              NAME: {result.name}, PUB: {result.publisher || 'Unknown'}
+              {selectedResult && selectedResult.id === result.id && (
+                <div className="expanded-info">
+                  {/* Display additional information here */}
+                  ID: {result.id}, RACE: {result.race || 'Unknown'}, POWERS: {result.powers}
+                </div>
+              )}
+              {/* Add the "Search" button for each result */}
+              <button onClick={() => handleSearchButtonClick(result.name, result.publisher)}>Search on DDG</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {results.length === 0 && <p className="noResults">No results found</p>}
     </div>
   );
 };
-
-export default SearchSection;
+export default Search;
