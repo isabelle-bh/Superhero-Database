@@ -2,47 +2,190 @@ import React, { useEffect, useState } from 'react';
 import '../App.css';
 
 const SideNav = () => {
-  const [selectedFilter, setSelectedFilter] = useState('name');
   const [lists, setLists] = useState([]);
+  const [selectedList, setSelectedList] = useState(null);
+  const [listDetails, setListDetails] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem('isAuthenticated') === 'true'
+  );
 
-  const handleFilterChange = (e) => {
-    setSelectedFilter(e.target.value);
+  const getUserLists = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+
+      if (!authToken) {
+        console.error('Authentication token not available. Please log in.');
+        return;
+      }
+
+      const response = await fetch("/api/superheroInfo/lists/getUserLists", {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      const data = await response.json();
+      console.log('Data from server:', data);
+
+      if (response.ok) {
+        const listsWithData = data.map((list) => ({
+          ...list,
+          desc: list.desc, // Assuming the server returns the description in the response
+        }));
+        setLists(listsWithData);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
-  const getLists = () => {
-    // fetching the data from the api
-    fetch("/api/superheroInfo/lists/getLists")
-      .then((res) => res.json())
-      .then((data) => {
-        setLists(data);
+  const getPublicLists = async () => {
+    try {
+      const response = await fetch("/api/superheroInfo/lists/getPublicLists");
+
+      const data = await response.json();
+      console.log('Data from server:', data);
+
+      if (response.ok) {
+        const listsWithData = data.map((list) => ({
+          ...list,
+          desc: list.desc, // Assuming the server returns the description in the response
+        }));
+        setLists(listsWithData);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const getListDetails = async (listName) => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+
+      if (!authToken) {
+        console.error('Authentication token not available. Please log in.');
+        return;
+      }
+
+      const response = await fetch(`/api/superheroInfo/lists/${listName}/getListDetails`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
       });
+
+      const data = await response.json();
+      console.log('List Details:', data);
+
+      if (response.ok) {
+        setListDetails(data);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   useEffect(() => {
-    // Fetch lists when the component mounts
-    getLists();
+    getUserLists();
+    getPublicLists();
   }, []);
+
+  useEffect(() => {
+    if (selectedList) {
+      getListDetails(selectedList.name);
+    }
+  }, [selectedList]);
+
+  const handleSelectList = (list) => {
+    // If the selected list is already expanded, close it
+    if (selectedList && selectedList._id === list._id) {
+      setSelectedList(null);
+    } else {
+      // Otherwise, expand the selected list
+      setSelectedList(list);
+    }
+  };
 
   return (
     <div id="mySideNav" className="sideNav">
-      <h2>select a list</h2>
-      <div className="createdLists">
-        <ul id="listsContainer">
-          {lists.map((listName) => (
-            <button
-              key={listName}
-              className="list-button"
-              data-listname={listName}
-            >
-              {listName}
-            </button>
-          ))}
-        </ul>
-      </div>
-      <h2>details</h2>
-      <div className="listDetails">
-        <ol id="listResults"></ol>
-      </div>
+      {isAuthenticated ? (
+        <>
+          <h2>select a list</h2>
+          <div className="createdLists">
+            <ul id="listsContainer">
+              {lists.length > 0 ? (
+                lists.map((list) => (
+                  <li key={list._id} className="list-item">
+                    <button
+                      className={`list-button ${selectedList && selectedList._id === list._id ? 'selected' : ''}`}
+                      onClick={() => handleSelectList(list)}
+                    >
+                      {list.name}
+                    </button>
+                    {selectedList && selectedList._id === list._id && (
+                      <div className="expanded-info">
+                        <h3>List Description: {selectedList.desc}</h3>
+                        <h3>Superheroes in the list:</h3>
+                        <ul>
+                          {listDetails.map((hero) => (
+                            <li key={hero.id}>
+                              ID: {hero.id}, NAME: {hero.name}, RACE: {hero.information.Race || 'Unknown'}, PUB: {hero.information.Publisher || 'Unknown'}, POWERS: {hero.powers}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </li>
+                ))
+              ) : (
+                <p className="noResults">No lists available</p>
+              )}
+            </ul>
+          </div>
+        </>
+      ) : (
+        <div className="unauthorized">
+          <br></br>
+          <h2>public lists:</h2>
+          <div className="public-lists">
+            <ul id="listsContainer">
+              {lists.length > 0 ? (
+                lists.map((list) => (
+                  <li key={list._id} className="list-item" id="publicLists">
+                    <button
+                      className={`list-button ${selectedList && selectedList._id === list._id ? 'selected' : ''}`}
+                      onClick={() => handleSelectList(list)}
+                    >
+                      {list.name} <br></br>
+                      Description: {list.desc} <br></br>
+                      Created By: {list.username}
+                    </button>
+                    {selectedList && selectedList._id === list._id && (
+                      <div className="expanded-info">
+                        <h3>Superheroes in the list:</h3>
+                        <ul>
+                          {listDetails.map((hero) => (
+                            <li key={hero.id} className="list-item">
+                              ID: {hero.id}, NAME: {hero.name}, RACE: {hero.information.Race || 'Unknown'}, PUB: {hero.information.Publisher || 'Unknown'}, POWERS: {hero.powers}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </li>
+                ))
+              ) : (
+                <p className="noResults">No lists available</p>
+              )}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
