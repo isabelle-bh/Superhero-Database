@@ -1,16 +1,90 @@
-
 // import json files and other required modules
 const superheroInfo = require('./superhero_info.json');
 const superheroPowers = require('./superhero_powers.json'); // Load superhero_powers data
 const express = require('express');
+const nodemailer = require('nodemailer'); // npm install nodemailer
 const List = require('./list');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
+// user model
 const User = require('./user')
+
+// mongodb user verification model
+const UserVerification = require('./userVerification');
+
+// unique string
+const {v4: uuidv4} = require('uuid');
+
+// env variables
+require('dotenv').config();
+
+// path for static verified page
+const path = require('path');
+
+// nodemailer stuff
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+    }
+});
+
+// test success
+transporter.verify((error, success) => {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('Server is ready to take messages');
+    console.log(success)
+  }
+});
+
+function generateToken(email) {
+  const payload = {
+    email: email,
+  };
+
+  const options = {
+    expiresIn: '24h', // You can adjust the token expiration time
+  };
+
+  const secretKey = '12345'; // Replace with a strong secret key
+
+  return jwt.sign(payload, secretKey, options);
+}
+
+// bcrypt
+const bcrypt = require('bcrypt');
+
+const { error } = require('console');
 
 const app = express();
 const port = 4000;
 const router = express.Router();
 const routerLists = express.Router();
 const routerUsers = express.Router();
+
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
+// setup middleware to do logging
+app.use((req, res, next) => { // for all routes
+    console.log(`${req.method} request for ${req.url}`);
+    next(); // keeps going
+});
+
+// Use CORS middleware
+app.use(cors(corsOptions));
+
+// parse data in body as JSON
+app.use(express.json());
+app.use(sanitizeInput);
 
 // STEP 10 FOR BACKEND
 // middleware to sanitize input
@@ -53,19 +127,6 @@ function sanitizeInput(req, res, next) {
     // Continue to the next middleware or route handler
     next(); 
 }
-
-// setup serving front-end code
-app.use('/', express.static('client'));
-
-// setup middleware to do logging
-app.use((req, res, next) => { // for all routes
-    console.log(`${req.method} request for ${req.url}`);
-    next(); // keeps going
-});
-
-// parse data in body as JSON
-router.use(express.json());
-router.use(sanitizeInput);
 
 // routes for /api/superheroInfo
 router.route('/') // all the routes to the base prefix
@@ -134,53 +195,43 @@ router.route('/:id/powers')
         }
     });
 
-router.route('/searchFunction/:field/:pattern/:n?')
-    // STEP 4 FOR BACKEND
-    // get a list of superheroes with a given field matching a pattern
-    .get((req, res) => {
-        const n = parseInt(req.params.n);
-        if (isNaN(n) && req.params.n !== undefined) {
-            res.status(400).send('Invalid parameter: n must be a number');
-            return;
-        }
+router.route('/searchFunction').post((req, res) => {
+  const { name, race, publisher, powers } = req.body;
 
-        const field = req.params.field.toLowerCase();
-        const pattern = req.params.pattern.toLowerCase();
+  // Check if all search inputs are empty
+  if (!name && !race && !publisher && !powers) {
+    res.send([]);
+    return;
+  }
 
-        if (!['id', 'name', 'race', 'publisher', 'powers'].includes(field)) {
-            res.status(400).send('Invalid parameter: field must be one of [id, name, race, publisher, powers]');
-            return;
-        }
+  const superheroDetails = superheroInfo.map(superhero => {
+    const powersArray = getSuperheroPowers(superhero.name);
+    return {
+      id: superhero.id,
+      name: superhero.name,
+      race: superhero.Race,
+      publisher: superhero.Publisher,
+      powers: powersArray.join(',')
+    };
+  });
 
-        const superheroDetails = superheroInfo.map(superhero => {
-            const powers = getSuperheroPowers(superhero.name).join(','); // Convert powers array to a string
-            return {
-                id: superhero.id,
-                name: superhero.name,
-                race: superhero.Race,
-                publisher: superhero.Publisher,
-                powers: powers
-            };
-        });
+  const filteredSuperheroes = superheroDetails.filter(superhero => {
+    const softMatch = (field, input) => {
+      // Implement soft-matching logic here
+      return field.toLowerCase().includes(input.toLowerCase());
+    };
 
-        const filteredSuperheroes = superheroDetails.filter(superhero => {
-            const fieldValue = superhero[field].toString().toLowerCase();
+    return (
+      softMatch(superhero.name, name) &&
+      softMatch(superhero.race, race) &&
+      softMatch(superhero.publisher, publisher) &&
+      softMatch(superhero.powers, powers)
+    );
+  });
 
-            // Special handling for powers field
-            if (field === 'powers') {
-                const powersArray = fieldValue.split(','); // Convert powers string back to an array
-                return powersArray.some(power => power.trim().startsWith(pattern));
-            }
+  res.send(filteredSuperheroes);
+});
 
-            return fieldValue.startsWith(pattern);
-        });
-
-        if (n === null || n === 0 || filteredSuperheroes.length <= n) {
-            res.send(filteredSuperheroes);
-        } else {
-            res.send(filteredSuperheroes.slice(0, n));
-        }
-    });
 
 // routes for /api/superheroInfo/superheroes-by-power/:power
 router.route('/superheroes-by-power/:power')
@@ -223,28 +274,65 @@ app.use('/api/superheroInfo', router);
 routerLists.use(express.json());
 routerLists.use(sanitizeInput);
 
-// create a new superhero list
-// routes for /api/superheroInfo/lists/createList
-routerLists.route('/createList')
-  // create a new superhero list
-  .post(async (req, res) => {
-    const listName = req.body.listName;
+// routes/lists.js
+
+function authenticate(req, res, next) {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, '12345'); // Replace with your actual secret key
+    req.user = decoded;
+    console.log(req.user); // Log the user information
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+routerLists.route('/createList').post(authenticate, async (req, res) => {
+  const listName = req.body.listName;
+  const desc = req.body.desc;
+  const email = req.user.email;
+  const visibility = req.body.visibility;
+
+  try {
+    // Check if the list name is missing
+    if (!listName || !desc) {
+      return res.status(422).json({ error: 'Missing 1 or more inputs' });
+    }
+
+    const findUser = await User.findOne({ email });
+    let username = findUser.username;
+    console.log(username);
+
+    // Check if the list name already exists for the user
+    const existingList = await List.findOne({ name: listName, user: email });
+    if (existingList) {
+      return res.status(400).json({ error: 'List name already exists for this user' });
+    }
+
+    // Create the list in MongoDB and associate it with the user
+    const newList = await List.create({ name: listName, superheroes: [], user: email, desc: desc, visibility: visibility, username: username });
+    res.json(newList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+  // routes/lists.js
+routerLists.route('/getUserLists')
+  .get(authenticate, async (req, res) => {
+    const email = req.user.email; // Assuming the user ID is stored in req.user
 
     try {
-      // Check if the list name is missing
-      if (!listName) {
-        return res.status(400).json({ error: 'Missing list name' });
-      }
-  
-      // Check if the list name already exists
-      const existingList = await List.findOne({ name: listName });
-      if (existingList) {
-        return res.status(400).json({ error: 'List name already exists' });
-      }
-  
-      // Create the list in MongoDB
-      const newList = await List.create({ name: listName, superheroes: [] });
-      res.json(newList);
+      // Retrieve all lists associated with the user
+      const userLists = await List.find({ user: email });
+      res.json(userLists);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -264,13 +352,27 @@ routerLists.route('/getLists')
             res.status(500).json({ error: 'Internal Server Error' });
           }
     });
+
+// routes for /api/superheroInfo/lists/getPublicLists
+routerLists.route('/getPublicLists')
+  // get a list of superhero lists with visibility "public"
+  .get(async (req, res) => {
+    try {
+      const publicLists = await List.find({ visibility: 'public' }).limit(10);
+      res.send(publicLists);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
     
 // routes for /api/superheroInfo/lists/:listName/addSuperhero/:superheroId
 routerLists.route('/:listName/addSuperhero/:superheroId')
     // add a superhero to a given list
-    .post(async (req, res) => {
+    .post(authenticate, async (req, res) => {
         const listName = req.params.listName;
         const superheroId = parseInt(req.params.superheroId);
+        const email = req.user.email; // Assuming the user ID is stored in req.user
       
         try {
           // Check if the list name is missing
@@ -279,6 +381,11 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
             return res.status(404).send(`Superhero list '${listName}' does not exist`);
           }
       
+          // Check if the logged-in user is the owner of the list
+          if (existingList.user !== email) {
+            return res.status(403).send('Unauthorized: You do not have permission to add superheroes to this list');
+          }
+
           // Find the superhero in superhero_info by ID
           const superhero = superheroInfo.find((s) => s.id === superheroId);
           if (superhero) {
@@ -325,14 +432,20 @@ routerLists.route('/:listName/superheroes')
 // routes for /api/superheroInfo/lists/:listName/deleteList
 routerLists.route('/:listName/deleteList')
     // delete a superhero from a given list
-    .delete(async (req, res) => {
+    .delete(authenticate, async (req, res) => {
         const listName = req.params.listName;
+        const email = req.user.email;
 
         try {
           // Check if the list does not exist
           const existingList = await List.findOne({ name: listName });
           if (!existingList) {
             return res.status(404).send(`Superhero list '${listName}' does not exist`);
+          }
+
+          // Check if the logged-in user is the owner of the list
+          if (existingList.user !== email) {
+            return res.status(403).send('Unauthorized: You do not have permission to delete this list');
           }
       
           // Delete the list from MongoDB
@@ -344,46 +457,68 @@ routerLists.route('/:listName/deleteList')
         }
     });
 
-// routes for /api/superheroInfo/lists/:listName/getSuperheroesDetails
-routerLists.route('/:listName/getSuperheroesDetails')
-    // get a list of names, information, and powers of all superheroes saved in a given list
-    .get(async (req, res) => {
-        const listName = req.params.listName;
+// routes for /api/superheroInfo/lists/:listName/getListDetails
+routerLists.route('/:listName/getListDetails')
+  .get(async (req, res) => {
+    const listName = req.params.listName;
 
-        try {
-          // Check if the list does not exist
-          const existingList = await List.findOne({ name: listName });
-          if (!existingList) {
-            return res.status(404).send(`Superhero list '${listName}' does not exist`);
-          }
-      
-          // Get the list of superhero IDs
-          const superheroIds = existingList.superheroes;
-          const superheroDetails = [];
-      
-          // Get the superhero details
-          for (const superheroId of superheroIds) {
-            // fix this later isa
-            const superhero = superheroInfo.find(p => p.id == superheroId);
-            console.log(superheroInfo);
-            if (superhero) {
-                const powers = getSuperheroPowers(superhero.name);
-                superheroDetails.push({
-                    id: superhero.id,
-                    name: superhero.name,
-                    information: superhero,
-                    powers: powers,
-                });
-            }
-          }
-      
-          // Send the superhero details
-          res.send(superheroDetails);
-        } catch (err) {
-          console.error(err);
-          res.status(500).json({ error: 'Internal Server Error' });
+    try {
+      // Check if the list exists
+      const existingList = await List.findOne({ name: listName });
+      if (!existingList) {
+        return res.status(404).send(`Superhero list '${listName}' does not exist`);
+      }
+
+      // Check if the list has superheroes
+      if (!existingList.superheroes || existingList.superheroes.length === 0) {
+        // Return an empty array or some other indicator
+        return res.status(200).json([]);
+      }
+
+      // Get the list details
+      const listDesc = existingList.desc;
+      const superheroIds = existingList.superheroes;
+      const listDetails = [];
+
+      // Get the superhero details
+      for (const superheroId of superheroIds) {
+        const superhero = superheroInfo.find(p => p.id == superheroId);
+        if (superhero) {
+          const powers = getSuperheroPowers(superhero.name);
+          listDetails.push({
+            desc: listDesc,
+            id: superhero.id,
+            name: superhero.name,
+            information: superhero,
+            powers: powers,
+          });
         }
-    });
+      }
+
+      // Send the superhero details
+      res.status(200).json(listDetails);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
+routerLists.route('/getListDetails2/:listName')
+  .get(async (req, res) => {
+  const listName = req.params.name;
+
+  try {
+    const list = await List.findOne(listName); // Retrieve the specific list by ID
+    if (!list) {
+      return res.status(404).json({ error: 'List not found' });
+    }
+
+    res.json(list); // Send the list as JSON response
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // function to get superhero powers by name
 function getSuperheroPowers(superheroName) {
@@ -411,57 +546,385 @@ app.use('/api/superheroInfo/lists', routerLists);
 routerUsers.use(express.json());
 
 // Signup route
-routerUsers.post('/signup', async (req, res) => {
-    const { username, password } = req.body;
+routerUsers.post('/signup', (req, res) => {
+  let { username, email, password } = req.body;
+  username = username.trim();
+  email = email.trim();
+  password = password.trim();
+
+  if (username === '' || email === '' || password === '') {
+    res.json({
+      status: 'EMPTY INPUTS',
+      message: 'Empty input fields!'
+    });
+    return; // Add return to prevent further processing
+  } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    res.json({
+      status: 'INVALID CHARS',
+      message: 'Invalid characters!'
+    });
+    return;
+  } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+    res.json({
+      status: 'INVALID EMAIL',
+      message: 'Invalid email!'
+    });
+    return;
+  } else if (password.length < 8) { 
+    res.json({
+      status: 'PASSWORD TOO SHORT',
+      message: 'Password is too short!'
+    });
+    return;
+  }
+
+// checking if user already exists by email
+User.findOne({ email })
+  .then((userByEmail) => {
+    if (userByEmail) {
+      // a user already exists with the provided email
+      res.json({
+        status: 'USER EMAIL ALREADY EXISTS',
+        message: 'User with the provided email already exists!'
+      });
+    } else {
+      // checking if username is unique
+      User.findOne({ username })
+        .then((userByUsername) => {
+          if (userByUsername) {
+            // a user already exists with the provided username
+            res.json({
+              status: 'USER USERNAME ALREADY EXISTS',
+              message: 'User with the provided username already exists!'
+            });
+          } else {
+            // try to create a new user
+            const saltRounds = 10;
+            bcrypt
+              .hash(password, saltRounds)
+              .then((hashedPassword) => {
+                // Check if the username is "administrator"
+                const isAdmin = username.toLowerCase() === 'administrator';
+
+                const newUser = new User({
+                  username,
+                  email,
+                  password: hashedPassword,
+                  verified: isAdmin ? true : false,
+                  active: true,
+                  admin: isAdmin ? true : false
+                });
+
+                newUser
+                  .save()
+                  .then((result) => {
+                    // handle account verification
+                    if (!isAdmin) {
+                      // Send verification email only if not an admin
+                      sendVerificationEmail({
+                        _id: result._id,
+                        email: result.email
+                      }, res);
+                    } else {
+                      res.json({
+                        status: 'SUCCESS',
+                        message: 'Admin user created successfully!'
+                      });
+                    }
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                    res.json({
+                      status: 'FAILED',
+                      message: 'An error occurred while saving user account!'
+                    });
+                  });
+              })
+              .catch((err) => {
+                console.error(err);
+                res.json({
+                  status: 'FAILED',
+                  message: 'An error occurred while hashing the password!'
+                });
+              });
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          res.json({
+            status: 'FAILED',
+            message: 'An error occurred while checking if the username already exists!'
+          });
+        });
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    res.json({
+      status: 'FAILED',
+      message: 'An error occurred while checking if the user already exists!'
+    });
+  });
+});
+
+
+// send verification email
+const sendVerificationEmail = ({_id, email}, res) => {
+  // url to be used in the email
+  const currentUrl = 'http://localhost:4000/';
+
+  const uniqueString = uuidv4() + _id;
+
+  const mailOptions ={
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: 'Email Verification',
+    html: `<h2>Thank you for registering!</h2>
+    <p>Please verify your email by clicking on the following link</p>
+    <p>This link expires in 6 hours</p>
+    <b><a href=${currentUrl + "api/users/verified/" + _id + "/" + uniqueString}>Verify Email</a>`
+  };
   
-    try {
-      // Check if the username is already taken
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
+  // hash the uniqueString
+  const saltRounds = 10;
+  bcrypt
+    .hash(uniqueString, saltRounds)
+    .then((hashedUniqueString) => {
+      // set values in userVerification collection
+      const newVerification = new UserVerification({
+        userId: _id,
+        uniqueString: hashedUniqueString,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 6*60*60*1000 // 6 hours
+      });
+
+      newVerification
+        .save()
+        .then(() => {
+          transporter
+            .sendMail(mailOptions)
+            .then(() => {
+              res.json({
+                status: 'PENDING',
+                message: 'Verification email sent!'
+              });
+            })
+            .catch((error) => {
+              console.log(error);
+              res.json({
+                status: 'FAILED',
+                message: 'Verification email failed'
+              });
+            })
+        })
+        .catch((error) => {
+          console.log(error);
+          res.json({
+            status: 'FAILED',
+            message:"Couldnt save verification email data!",
+          });
+        });
+    } )
+    .catch(() => {
+      res.json({
+        status: 'FAILED',
+        message: 'An error occured while hashing email data!'
+      });
+    })
+};
+
+// verify email
+routerUsers.get("/verified/:userId/:uniqueString", (req, res) => {
+  let { userId, uniqueString } = req.params;
+
+  UserVerification
+    .find({ userId })
+    .then((result) => {
+      if (result.length > 0) {
+        // user verification exists so we proceed
+        const { expiresAt } = result[0];
+        const hashedUniqueString = result[0].uniqueString;
+
+        // checking for expired unique string
+        if (expiresAt < Date.now()) {
+          // record expired so we delete
+          UserVerification
+            .deleteOne({ userId })
+            .then(result => {
+              User
+                .deleteOne({ _id: userId })
+                .then(() => {
+                  let message = "Verification link expired. Please sign up again.";
+                  res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+                })
+                .catch((error) => {
+                  console.log(error);
+                  let message = "Clearing user with expired unique string failed";
+                  res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+                });
+            })
+            .catch((error) => {
+              console.log(error);
+              let message = "An error occurred while deleting expired verification record!";
+              res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+            });
+        } else {
+          // valid record exists so we validate the user string
+          // first compare hashed unique string
+          bcrypt
+            .compare(uniqueString, hashedUniqueString)
+            .then(result => {
+              if (result) {
+                // strings match
+                User
+                  .updateOne({ _id: userId }, { verified: true })
+                  .then(() => {
+                    UserVerification
+                      .deleteOne({ userId })
+                      .then(() => {
+                        res.sendFile(path.join(__dirname, './views/verified.html'));
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        let message = "An error occurred while finalizing successful verification!";
+                        res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+                      });
+                  })
+                  .catch(error => {
+                    console.log(error);
+                    let message = "An error occurred while updating user verification status!";
+                    res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+                  })
+              } else {
+                // existing record but incorrect verification details
+                let message = "Invalid verification details!";
+                res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+              }
+            })
+            .catch(error => {
+              let message = "An error occurred while comparing unique string!";
+              res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+            });
+        }
+      } else {
+        // user verification record don't exist
+        let message = "Account record does not exist or has been verified already. Please sign up or log in.";
+        res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
       }
+    })
+    .catch((error) => {
+      console.log(error);
+      let message = "An error occurred while checking for an existing user verification record!";
+      res.redirect(`/users/verified/error=true&message=${encodeURIComponent(message)}`);
+    });
+});
+
+// verified page route
+routerUsers.get('/verified', (req, res) => {
+  res.sendFile(path.join(__dirname, './views/verified.html'));
+});
   
-      // Hash the password before saving it
-      const hashedPassword = await bcrypt.hash(password, 10);
+// Login route
+routerUsers.post('/login', async (req, res) => {
+  let { email, password } = req.body;
+  email = email.trim();
+  password = password.trim();
+
+  if (email === '' || password === '') {
+    res.json({
+      status: 'EMPTY CREDENTIALS',
+      message: 'Empty credentials supplied'
+    });
+  } else {
+    User.find({ email })
+      .then((data) => {
+        const admin = data[0].admin;
+        const username = data[0].username;
+        if (data.length) {
+          if (!data[0].verified) {
+            res.json({
+              status: 'FAILED VERIFICATION',
+              message: 'Please verify your email to continue!'
+            });
+          } else {
+            const hashedPassword = data[0].password;
+            bcrypt
+              .compare(password, hashedPassword)
+              .then((result) => {
+                if (result) {
+                  const token = generateToken(email);
+                  res.json({
+                    status: 'SUCCESS',
+                    message: 'Login successful' + token,
+                    data: data,
+                    token: token, // Include the generated token in the response
+                    admin: admin,
+                    username: username
+                  });
+                } else {
+                  res.json({
+                    status: 'INVALID PASSWORD',
+                    message: 'Invalid password!'
+                  });
+                }
+              })
+              .catch((error) => {
+                res.json({
+                  status: 'FAILED',
+                  message: 'An error occurred while comparing passwords!'
+                });
+              });
+          }
+        } else {
+          res.json({
+            status: 'INVALID ACCOUNT',
+            message: 'User not found!'
+          });
+        }
+      })
+      .catch((error) => {
+        res.json({
+          status: 'FAILED',
+          message: 'An error occurred while finding the user!'
+        });
+      });
+  }
+});
   
-      // Create a new user
-      const newUser = new User({ username, password: hashedPassword });
-      await newUser.save();
-  
-      res.status(201).json({ message: 'User created successfully' });
+routerUsers.get('/', async (req, res) => {
+    try {
+      const users = await User.find(); // Retrieve all users from the database
+      res.json(users); // Send the users as JSON response
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   });
-  
-  // Login route
-  routerUsers.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+
+routerUsers.delete('/deleteUser/:username', async (req, res) => {
+    const { username } = req.params;
   
     try {
-      // Check if the user exists
-      const user = await User.findOne({ username });
+      // Check if the user with the given ID exists
+      const user = await User.findOne( {username} );
+  
       if (!user) {
-        return res.status(401).json({ message: 'Invalid username or password' });
+        return res.status(404).json({ message: 'User not found' });
       }
   
-      // Compare the provided password with the hashed password in the database
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return res.status(401).json({ message: 'Invalid username or password' });
-      }
+      // Remove the user from the database
+      await User.deleteOne( {username} );
   
-      res.status(200).json({ message: 'Login successful' });
+      res.json({ message: 'User removed successfully' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
+      console.error('Error removing user:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   });
 
 app.use('/api/users', routerUsers);
 
 // START THE SERVER
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
+app.listen(4000, () => {
+  console.log('Backend server is running on port 4000');
 });
