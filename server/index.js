@@ -992,6 +992,55 @@ routerUsers.post('/login', async (req, res) => {
       });
   }
 });
+
+// Route for updating the user's password
+routerUsers.route('/updatePassword')
+  .post(authenticate, async (req, res) => {
+    let { currentPassword, newPassword } = req.body;
+    const email = req.user.email;
+
+    try {
+      // Find the user by email
+      const user = await User.findOne({ email });
+
+      // Check if the user exists
+      if (!user) {
+        return res.json({
+          status: 'USER NOT FOUND',
+          message: 'User with the provided email not found!'
+        });
+      }
+
+      // Check if the current password matches
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+      if (!passwordMatch) {
+        return res.json({
+          status: 'WRONG CURRENT PASSWORD',
+          message: 'Current password does not match!'
+        });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update the user's password
+      user.password = hashedNewPassword;
+      await user.save();
+
+      res.json({
+        status: 'PASSWORD UPDATED',
+        message: 'Password updated successfully!'
+      });
+    } catch (error) {
+      console.error(error);
+      res.json({
+        status: 'FAILED',
+        message: 'An error occurred while updating the password!'
+      });
+    }
+  });
   
 routerUsers.get('/', async (req, res) => {
     try {
