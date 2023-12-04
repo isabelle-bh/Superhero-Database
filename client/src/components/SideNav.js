@@ -64,18 +64,7 @@ const SideNav = () => {
 
   const getListDetails = async (listName) => {
     try {
-      const authToken = localStorage.getItem('authToken');
-
-      if (!authToken) {
-        console.error('Authentication token not available. Please log in.');
-        return;
-      }
-
-      const response = await fetch(`/api/superheroInfo/lists/${listName}/getListDetails`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
+      const response = await fetch(`/api/superheroInfo/lists/${listName}/getListDetails`);
 
       const data = await response.json();
       console.log('List Details:', data);
@@ -161,9 +150,12 @@ const SideNav = () => {
                       className={`list-button ${selectedList && selectedList._id === list._id ? 'selected' : ''}`}
                       onClick={() => handleSelectList(list)}
                     >
-                      {list.name} <br></br>
-                      Description: {list.desc} <br></br>
-                      Created By: {list.username}
+                      {list.name} <br />
+                      Description: {list.desc} <br />
+                      Created By: {list.username} <br />
+                      No. Of Heroes: {list.superheroes.length} <br />
+                      Last Modified: {list.updatedTime} <br />
+                      Rating: {list.rating}
                     </button>
                     {selectedList && selectedList._id === list._id && (
                       <div className="expanded-info">
@@ -175,6 +167,7 @@ const SideNav = () => {
                             </li>
                           ))}
                         </ul>
+                        {/* Add any additional information or actions here */}
                       </div>
                     )}
                   </li>
