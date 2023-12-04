@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../App.css';
 
 const DeleteListSection = () => {
   const [listName, setListName] = useState('');
   const [message, setMessage] = useState('');
   const [lists, setLists] = useState([]);
+  const [listsWithData, setListsWithData] = useState([]); // Define listsWithData outside of getUserLists
+  const [selectedList, setSelectedList] = useState('');
 
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem('isAuthenticated') === 'true'
@@ -33,7 +35,9 @@ const DeleteListSection = () => {
           ...list,
           desc: list.desc, // Assuming the server returns the description in the response
         }));
+        setListsWithData(listsWithData);
         setLists(listsWithData);
+        setSelectedList(listsWithData.length > 0 ? listsWithData[0].name : ''); // Set the initial selected list
       } else {
         console.error('Error:', response.status);
       }
@@ -41,6 +45,11 @@ const DeleteListSection = () => {
       console.error('Error:', error);
     }
   };
+
+  // Call getUserLists when the component mounts
+  useEffect(() => {
+    getUserLists();
+  }, []);
 
   const confirmDelete = () => {
     const isConfirmed = window.confirm('Are you sure you want to delete this list?');
@@ -53,12 +62,6 @@ const DeleteListSection = () => {
     // Reset message
     setMessage('');
   
-    // Check if the list name is empty
-    if (!listName) {
-      setMessage('Please enter a list name.');
-      return;
-    }
-  
     const authToken = localStorage.getItem('authToken');
   
     // Check if the authToken is available
@@ -69,13 +72,13 @@ const DeleteListSection = () => {
   
     try {
       // Delete an existing list
-      const response = await fetch(`/api/superheroInfo/lists/${listName}/deleteList`, {
+      const response = await fetch(`/api/superheroInfo/lists/${selectedList}/deleteList`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ listName }),
+        body: JSON.stringify({ selectedList }),
       });
   
       // Check the status and handle accordingly
@@ -104,13 +107,17 @@ const DeleteListSection = () => {
       <h2>delete a list</h2>
       <div className="deleteList">
         <p>
-          <input
-            type="text"
-            id="deleteListNameInput"
-            placeholder="enter a name"
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-          />
+        <select
+            id="findListInput"
+            value={selectedList}
+            onChange={(e) => setSelectedList(e.target.value)}
+          >
+            {listsWithData.map((list) => (
+              <option key={list.id} value={list.name}>
+                {list.name}
+              </option>
+            ))}
+          </select>
           <button id="deleteListButton" onClick={confirmDelete}>
             submit
           </button>
