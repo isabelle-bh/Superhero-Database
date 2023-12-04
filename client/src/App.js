@@ -6,7 +6,7 @@ import SignupPage from './components/SignupPage';
 import Header from './components/Header';
 import SearchSection from './components/SearchSection';
 import CreateListSection from './components/CreateListSection';
-import AddToListSection from './components/AddToListSection';
+import EditListSection from './components/EditListSection';
 import DeleteListSection from './components/DeleteListSection';
 import Admin from './components/Admin';
 import SideNav from './components/SideNav';
@@ -38,7 +38,7 @@ function App() {
                   <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
                   <SearchSection setIsAuthenticated={setIsAuthenticated} />
                   <CreateListSection setIsAuthenticated={setIsAuthenticated} />
-                  <AddToListSection setIsAuthenticated={setIsAuthenticated} />
+                  <EditListSection setIsAuthenticated={setIsAuthenticated} />
                   <DeleteListSection setIsAuthenticated={setIsAuthenticated} />
                 </div>
               </>
