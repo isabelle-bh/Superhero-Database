@@ -4,13 +4,9 @@ import '../App.css';
 const DeleteListSection = () => {
   const [listName, setListName] = useState('');
   const [message, setMessage] = useState('');
-  const [lists, setLists] = useState([]);
+  const [setLists] = useState([]);
   const [listsWithData, setListsWithData] = useState([]); // Define listsWithData outside of getUserLists
   const [selectedList, setSelectedList] = useState('');
-
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    localStorage.getItem('isAuthenticated') === 'true'
-  );
 
   const getUserLists = async () => {
     try {
@@ -49,7 +45,7 @@ const DeleteListSection = () => {
   // Call getUserLists when the component mounts
   useEffect(() => {
     getUserLists();
-  }, []);
+  }, [getUserLists()]);
 
   const confirmDelete = () => {
     const isConfirmed = window.confirm('Are you sure you want to delete this list?');
