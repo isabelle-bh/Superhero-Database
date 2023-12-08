@@ -49,11 +49,19 @@ h2 {
   align-items: center;
 }
 
-.menu, .login, .signup, .admin {
+.menu, .login, .signup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 10px;
+  padding-bottom: 30px;
+}
+
+.admin {
+  top: 40%;
+  left: 40%;
   text-align: center;
   padding: 10px;
   padding-bottom: 30px;
@@ -77,7 +85,7 @@ hr {
   margin: 20px auto;
 }
 
-input, select {
+input, select, textarea {
   padding: 10px;
   border: 0px solid;
   border-radius: 14px;
@@ -105,6 +113,18 @@ button {
 
 button:hover {
   background-color: #a50759;
+}
+
+pre {
+  font-size: 16px;
+  font-family: 'Mukta', sans-serif;
+  font-weight: 600;
+  color: rgb(48, 48, 48);
+  margin: 10px 0;
+}
+
+.policy-container {
+  width: 100px;
 }
 
 .selected {
@@ -150,9 +170,8 @@ body {
   margin: 0;
 }
 
-/* Set a margin for the content to prevent it from being hidden behind the side nav */
 .content {
-  margin-left: 250px; /* Adjust this based on your sideNav width */
+  margin-left: 250px;
 }
 
 /* SideNav.css */
@@ -166,6 +185,7 @@ body {
   padding-top: 20px;
   overflow: scroll;
 }
+
 
 .main {
   margin-left: 250px;
@@ -236,3 +256,17 @@ ul .superheroes {
   margin: 5px; /* Fixed margin to create space between inputs */
 }
 
+.h-input {
+  background-color: #d8d4ca;
+  color: black;
+}
+
+.footer button {
+  background-color: pink;
+  font-weight: 600;
+  color: black;
+}
+
+.footer button:hover {
+  color: white;
+}
