@@ -10,7 +10,6 @@ const EditListSection = () => {
   const [listsWithData, setListsWithData] = useState([]); // Define listsWithData outside of getUserLists
   const [visibility, setVisibility] = useState([]); // Define listsWithData outside of getUserLists
 
-  // Assuming you have a state for user authentication
   const [authToken, setAuthToken] = useState('');
 
   useEffect(() => {
@@ -135,7 +134,7 @@ const EditListSection = () => {
       if (response.ok) {
         const listsWithData = data.map((list) => ({
           ...list,
-          desc: list.desc, // Assuming the server returns the description in the response
+          desc: list.desc,
         }));
         setListsWithData(listsWithData);
         setLists(listsWithData);
@@ -176,7 +175,6 @@ const EditListSection = () => {
       .then((res) => {
         if (res.status === 200) {
           setMessage(`List name updated to '${listName}'.`);
-          // Optionally, you may want to update the list of user lists after a successful update
           getUserLists();
         } else if (res.status === 400) {
           setMessage('Invalid request. Please check your input.');
@@ -220,7 +218,6 @@ const EditListSection = () => {
       .then((res) => {
         if (res.status === 200) {
           setMessage(`List visibility updated to '${visibility}'.`);
-          // Optionally, you may want to update the list of user lists after a successful update
           getUserLists();
         } else {
           setMessage('An unspecified error occurred. Please try again.');

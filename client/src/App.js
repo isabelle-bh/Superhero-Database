@@ -11,6 +11,10 @@ import DeleteListSection from './components/DeleteListSection';
 import Admin from './components/Admin';
 import SideNav from './components/SideNav';
 import Menu from './components/Menu';
+import LessAdmin from './components/LessAdmin';
+import Policy from './components/Policy';
+import DMCA from './components/DMCA';
+import AUP from './components/AUP';
 
 function App() {
   // Initially set isAuthenticated based on localStorage
@@ -19,7 +23,6 @@ function App() {
   );
 
   useEffect(() => {
-    // You can perform additional setup or checks here
   }, []);
 
   return (
@@ -28,6 +31,11 @@ function App() {
         <Route path="/" element={<Menu isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<LoginPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/signup" element={<SignupPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/less-admin-dashboard" element={<LessAdmin setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />} />
+        <Route path="/policy" element={<Policy />} />
+        <Route path="/dmca" element={<DMCA />} />
+        <Route path="/aup" element={<AUP />} />
+
         <Route
           path="/dashboard/*"
           element={
@@ -62,7 +70,6 @@ function App() {
         <Route
           path="/admin-dashboard"
           element={
-            // Unauthorized dashboard (only header and search section)
             <div className="content">
               <Admin setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
             </div>

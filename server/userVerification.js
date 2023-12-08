@@ -1,5 +1,5 @@
-// user.js
-const mongoose = require('./db'); // Import your MongoDB connection
+
+const mongoose = require('./db');
 
 const UserVerificationSchema = new mongoose.Schema({
     userId: String,

@@ -1,5 +1,5 @@
 // user.js
-const mongoose = require('./db'); // Import your MongoDB connection
+const mongoose = require('./db'); 
 
 const userSchema = new mongoose.Schema({
     username: String,
@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     password: String,
     verified: Boolean,
     active: Boolean,
-    admin: Boolean
+    admin: Boolean,
+    lessAdmin: Boolean,
 });
 
 const User = mongoose.model('User', userSchema);

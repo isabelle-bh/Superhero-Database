@@ -9,6 +9,11 @@ const DeleteListSection = () => {
   const [selectedList, setSelectedList] = useState('');
 
   const getUserLists = async () => {
+    if (selectedList == 'select-list') { 
+      alert('Please select a list.');
+      return;
+    }
+
     try {
       const authToken = localStorage.getItem('authToken');
 
@@ -29,7 +34,7 @@ const DeleteListSection = () => {
       if (response.ok) {
         const listsWithData = data.map((list) => ({
           ...list,
-          desc: list.desc, // Assuming the server returns the description in the response
+          desc: list.desc,
         }));
         setListsWithData(listsWithData);
         setLists(listsWithData);
@@ -108,6 +113,9 @@ const DeleteListSection = () => {
             value={selectedList}
             onChange={(e) => setSelectedList(e.target.value)}
           >
+            <option value="select-list">
+              Select a list
+            </option>
             {listsWithData.map((list) => (
               <option key={list.id} value={list.name}>
                 {list.name}

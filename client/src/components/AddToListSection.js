@@ -6,7 +6,6 @@ const AddToListSection = () => {
   const [superheroId, setSuperheroId] = useState('');
   const [message, setMessage] = useState('');
 
-  // Assuming you have a state for user authentication
   const [authToken, setAuthToken] = useState('');
 
   useEffect(() => {
