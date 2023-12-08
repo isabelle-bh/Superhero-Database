@@ -253,7 +253,7 @@ ul .superheroes {
 .search-boxes input {
   flex: 1;
   width: 150px;
-  margin: 5px; /* Fixed margin to create space between inputs */
+  margin: 5px;
 }
 
 .h-input {
