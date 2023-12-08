@@ -76,15 +76,18 @@ const LessAdmin = ({ }) => {
             <h3>All Users:</h3>
             <ul>
               {users.map((user) => (
-                <li key={user.email}>
-                  {user.username}
-                  <button
-                    onClick={() => handleToggleAccount(user.email, user.active)}
-                    className="deactivate-button"
-                  >
-                    {user.active ? 'Deactivate Account' : 'Reactivate Account'}
-                  </button>
-                </li>
+                // Skip rendering if the username is "administrator"
+                user.username !== 'administrator' && (
+                  <li key={user.email}>
+                    {user.username}
+                    <button
+                      onClick={() => handleToggleAccount(user.email, user.active)}
+                      className="deactivate-button"
+                    >
+                      {user.active ? 'Deactivate Account' : 'Reactivate Account'}
+                    </button>
+                  </li>
+                )
               ))}
             </ul>
           </div>
