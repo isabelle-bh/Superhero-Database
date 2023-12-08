@@ -6,11 +6,10 @@ const nodemailer = require('nodemailer'); // npm install nodemailer
 const List = require('./list');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-
-// user model
+const Policy = require('./policy');
 const User = require('./user')
-
-// mongodb user verification model
+const DMCA = require('./DMCA');
+const AUP = require('./AUP');
 const UserVerification = require('./userVerification');
 
 // unique string
@@ -47,10 +46,10 @@ function generateToken(email) {
   };
 
   const options = {
-    expiresIn: '24h', // You can adjust the token expiration time
+    expiresIn: '24h',
   };
 
-  const secretKey = '12345'; // Replace with a strong secret key
+  const secretKey = '12345';
 
   return jwt.sign(payload, secretKey, options);
 }
@@ -61,10 +60,11 @@ const bcrypt = require('bcrypt');
 const { error } = require('console');
 
 const app = express();
-const port = 4000;
+const port = process.env.PORT;
 const router = express.Router();
 const routerLists = express.Router();
 const routerUsers = express.Router();
+const routerAdmin = express.Router();
 
 const corsOptions = {
   origin: '*',
@@ -89,7 +89,7 @@ app.use(sanitizeInput);
 // STEP 10 FOR BACKEND
 // middleware to sanitize input
 function sanitizeInput(req, res, next) {
-    const maxLength = 20; // Adjust the maximum length as needed
+    const maxLength = 20;
     const maxIdLength = 3;
 
     // Sanitize ID by converting it to an integer
@@ -195,43 +195,52 @@ router.route('/:id/powers')
         }
     });
 
-router.route('/searchFunction').post((req, res) => {
-  const { name, race, publisher, powers } = req.body;
-
-  // Check if all search inputs are empty
-  if (!name && !race && !publisher && !powers) {
-    res.send([]);
-    return;
-  }
-
-  const superheroDetails = superheroInfo.map(superhero => {
-    const powersArray = getSuperheroPowers(superhero.name);
-    return {
-      id: superhero.id,
-      name: superhero.name,
-      race: superhero.Race,
-      publisher: superhero.Publisher,
-      powers: powersArray.join(',')
-    };
-  });
-
-  const filteredSuperheroes = superheroDetails.filter(superhero => {
-    const softMatch = (field, input) => {
-      // Implement soft-matching logic here
-      return field.toLowerCase().includes(input.toLowerCase());
-    };
-
-    return (
-      softMatch(superhero.name, name) &&
-      softMatch(superhero.race, race) &&
-      softMatch(superhero.publisher, publisher) &&
-      softMatch(superhero.powers, powers)
-    );
-  });
-
-  res.send(filteredSuperheroes);
-});
-
+    router.route('/searchFunction').post((req, res) => {
+      const { name, race, publisher, powers } = req.body;
+    
+      // Check if all search inputs are empty
+      if (!name && !race && !publisher && !powers) {
+        res.send([]);
+        return;
+      }
+    
+      const superheroDetails = superheroInfo.map((superhero) => {
+        const powersArray = getSuperheroPowers(superhero.name);
+        return {
+          id: superhero.id,
+          name: superhero.name,
+          race: superhero.Race,
+          publisher: superhero.Publisher,
+          powers: powersArray.join(','),
+        };
+      });
+    
+      const filteredSuperheroes = superheroDetails.filter((superhero) => {
+        const softMatch = (field, input) => {
+          const sanitizedField = field.replace(/\s/g, '').toLowerCase();
+          const sanitizedInput = input.replace(/\s/g, '').toLowerCase();
+        
+          // Check if each character in the input is present in the field
+          for (let i = 0; i < sanitizedInput.length; i++) {
+            if (!sanitizedField.includes(sanitizedInput[i])) {
+              return false;
+            }
+          }
+        
+          return true;
+        };        
+    
+        return (
+          softMatch(superhero.name, name) &&
+          softMatch(superhero.race, race) &&
+          softMatch(superhero.publisher, publisher) &&
+          softMatch(superhero.powers, powers)
+        );
+      });
+    
+      res.send(filteredSuperheroes);
+    });
+    
 
 // routes for /api/superheroInfo/superheroes-by-power/:power
 router.route('/superheroes-by-power/:power')
@@ -284,9 +293,9 @@ function authenticate(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, '12345'); // Replace with your actual secret key
+    const decoded = jwt.verify(token, '12345');
     req.user = decoded;
-    console.log(req.user); // Log the user information
+    console.log(req.user);
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
@@ -297,7 +306,7 @@ routerLists.route('/createList').post(authenticate, async (req, res) => {
   const listName = req.body.listName;
   const desc = req.body.desc;
   const email = req.user.email;
-  const visibility = req.body.visibility;
+  const visibility = "private";
   const updatedTime = Date.now();
 
   try {
@@ -328,7 +337,7 @@ routerLists.route('/createList').post(authenticate, async (req, res) => {
   // routes/lists.js
 routerLists.route('/getUserLists')
   .get(authenticate, async (req, res) => {
-    const email = req.user.email; // Assuming the user ID is stored in req.user
+    const email = req.user.email;
 
     try {
       // Retrieve all lists associated with the user
@@ -373,7 +382,7 @@ routerLists.route('/:listName/addSuperhero/:superheroId')
     .post(authenticate, async (req, res) => {
         const listName = req.params.listName;
         const superheroId = parseInt(req.params.superheroId);
-        const email = req.user.email; // Assuming the user ID is stored in req.user
+        const email = req.user.email; 
         const updatedTime = Date.now();
       
         try {
@@ -417,7 +426,7 @@ routerLists.route('/:listName/removeSuperhero/:superheroId')
     .post(authenticate, async (req, res) => {
         const listName = req.params.listName;
         const superheroId = parseInt(req.params.superheroId);
-        const email = req.user.email; // Assuming the user ID is stored in req.user
+        const email = req.user.email; 
         const updatedTime = Date.now();
       
         try {
@@ -484,7 +493,7 @@ routerLists.route('/:listName/updateListName')
     .post(authenticate, async (req, res) => {
         const { listName } = req.params;
         const { newListName } = req.body;
-        const email = req.user.email; // Assuming the user ID is stored in req.user
+        const email = req.user.email;
         const updatedTime = Date.now();
 
         try {
@@ -510,7 +519,7 @@ routerLists.route('/:listName/updateVisibility')
   .post(authenticate, async (req, res) => {
     const { listName } = req.params;
     const { visibility } = req.body;
-    const email = req.user.email; // Assuming the user ID is stored in req.user
+    const email = req.user.email; 
     const updatedTime = Date.now();
 
     try {
@@ -714,7 +723,8 @@ User.findOne({ email })
                   password: hashedPassword,
                   verified: isAdmin ? true : false,
                   active: true,
-                  admin: isAdmin ? true : false
+                  admin: isAdmin ? true : false,
+                  lessAdmin: false,
                 });
 
                 newUser
@@ -773,7 +783,7 @@ User.findOne({ email })
 // send verification email
 const sendVerificationEmail = ({_id, email}, res) => {
   // url to be used in the email
-  const currentUrl = 'http://localhost:4000/';
+  const currentUrl = process.env.CURRENT_URL;
 
   const uniqueString = uuidv4() + _id;
 
@@ -933,65 +943,103 @@ routerUsers.post('/login', async (req, res) => {
   password = password.trim();
 
   if (email === '' || password === '') {
-    res.json({
+    return res.json({
       status: 'EMPTY CREDENTIALS',
       message: 'Empty credentials supplied'
     });
-  } else {
-    User.find({ email })
-      .then((data) => {
+  }
+
+  try {
+    const data = await User.find({ email });
+
+    if (data.length) {
+      const active = data[0].active;
+      const lessAdmin = data[0].lessAdmin;
+
+      if (!active) {
+        return res.json({
+          status: 'INACTIVE ACCOUNT',
+          message: 'Account is inactive!'
+        });
+      }
+
+      if (!data[0].verified) {
+        return res.status(403).json({
+          status: 'FAILED VERIFICATION',
+          message: 'Please verify your email to continue!',
+          resendLink: `/api/users/resendVerification/${data[0].email}`
+        });
+      }
+
+      const hashedPassword = data[0].password;
+      const result = await bcrypt.compare(password, hashedPassword);
+
+      if (result) {
         const admin = data[0].admin;
         const username = data[0].username;
-        if (data.length) {
-          if (!data[0].verified) {
-            res.json({
-              status: 'FAILED VERIFICATION',
-              message: 'Please verify your email to continue!'
-            });
-          } else {
-            const hashedPassword = data[0].password;
-            bcrypt
-              .compare(password, hashedPassword)
-              .then((result) => {
-                if (result) {
-                  const token = generateToken(email);
-                  res.json({
-                    status: 'SUCCESS',
-                    message: 'Login successful' + token,
-                    data: data,
-                    token: token, // Include the generated token in the response
-                    admin: admin,
-                    username: username
-                  });
-                } else {
-                  res.json({
-                    status: 'INVALID PASSWORD',
-                    message: 'Invalid password!'
-                  });
-                }
-              })
-              .catch((error) => {
-                res.json({
-                  status: 'FAILED',
-                  message: 'An error occurred while comparing passwords!'
-                });
-              });
-          }
-        } else {
-          res.json({
-            status: 'INVALID ACCOUNT',
-            message: 'User not found!'
-          });
-        }
-      })
-      .catch((error) => {
-        res.json({
-          status: 'FAILED',
-          message: 'An error occurred while finding the user!'
+        const token = generateToken(email);
+
+        return res.json({
+          status: 'SUCCESS',
+          message: 'Login successful',
+          data: data,
+          token: token,
+          admin: admin,
+          lessAdmin: lessAdmin,
+          username: username
         });
+      } else {
+        return res.json({
+          status: 'INVALID PASSWORD',
+          message: 'Invalid password!'
+        });
+      }
+    } else {
+      return res.json({
+        status: 'INVALID ACCOUNT',
+        message: 'User not found!'
       });
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    return res.json({
+      status: 'FAILED',
+      message: 'An error occurred while finding the user!'
+    });
   }
 });
+
+routerUsers.get("/resendVerification/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    // Find the user by email to get the correct _id
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log(user._id);
+
+    // Use the found user's _id for UserVerification.find
+    const userVerification = await UserVerification.find({ userId: user._id });
+
+    if (userVerification.length > 0) {
+
+      return res.json({
+        status: 'Verification email resent successfully!',
+        // additional response data
+      });
+    } else {
+      return res.status(404).json({ message: 'User verification record not found' });
+    }
+  } catch (error) {
+    console.error('Error resending verification email:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 // Route for updating the user's password
 routerUsers.route('/updatePassword')
@@ -1073,9 +1121,246 @@ routerUsers.delete('/deleteUser/:username', async (req, res) => {
     }
   });
 
+// Route to deactivate or reactivate a user account
+routerUsers.put('/:action/:email', async (req, res) => {
+  const { action, email } = req.params;
+
+  try {
+    const user = await User.findOne({email});
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (action === 'deactivate' && user.active) {
+      user.active = false;
+    } else if (action === 'reactivate' && !user.active) {
+      user.active = true;
+    } else {
+      return res.status(400).json({ message: 'Invalid action or user state' });
+    }
+
+    await user.save();
+
+    const message = `User account ${action}d successfully`;
+    res.json({ message });
+  } catch (error) {
+    console.error(`Error ${action}ing user account:`, error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+routerUsers.post('/grantAdmin/:email', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.lessAdmin = true; // Set the 'admin' attribute to true
+    await user.save();
+
+    res.json({ message: 'Admin privileges granted successfully' });
+  } catch (error) {
+    console.error('Error granting admin privileges:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+routerUsers.post('/revokeAdmin/:email', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.lessAdmin = false; // Set the 'admin' attribute to false
+    await user.save();
+
+    res.json({ message: 'Admin privileges revoked successfully' });
+  } catch (error) {
+    console.error('Error revoking admin privileges:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 app.use('/api/users', routerUsers);
 
+// API route to get the security and privacy policy
+routerAdmin.get('/getPolicy', async (req, res) => {
+  try {
+    const policy = await Policy.findOne();
+    if (policy) {
+      res.json({ policy: policy.content });
+    } else {
+      res.status(404).send('Security and privacy policy not found');
+    }
+  } catch (error) {
+    console.error('Error fetching security and privacy policy:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to create the security and privacy policy
+routerAdmin.put('/create-update-policy', async (req, res) => {
+  const { policy } = req.body;
+
+  try {
+    let existingPolicy = await Policy.findOne();
+
+    if (existingPolicy) {
+      existingPolicy.content = policy;
+      await existingPolicy.save();
+      res.status(200).send('Current security and privacy policy updated successfully.');
+    } else {
+      const newPolicy = new Policy({ content: policy });
+      await newPolicy.save();
+      res.status(201).send('Security and privacy policy created successfully.');
+    }
+
+  } catch (error) {
+    console.error('Error updating security and privacy policy:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to delete the security and privacy policy
+routerAdmin.delete('/delete-policy', async (req, res) => {
+  try {
+    const deletedPolicy = await Policy.findOneAndDelete();
+
+    if (deletedPolicy) {
+      res.status(200).send('Security and privacy policy deleted successfully.');
+    } else {
+      res.status(404).send('No security and privacy policy found to delete.');
+    }
+
+  } catch (error) {
+    console.error('Error deleting security and privacy policy:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to get the DMCA
+routerAdmin.get('/get-dmca', async (req, res) => {
+  try {
+    const dmca = await DMCA.findOne();
+    if (dmca) {
+      res.json({ dmca: dmca.content });
+    } else {
+      res.status(404).send('DMCA not found');
+    }
+  } catch (error) {
+    console.error('Error fetching DMCA:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to create the DMCA
+routerAdmin.put('/create-update-dmca', async (req, res) => {
+  const { dmca } = req.body;
+
+  try {
+    let existingDMCA = await DMCA.findOne();
+
+    if (existingDMCA) {
+      existingDMCA.content = dmca;
+      await existingDMCA.save();
+      res.status(200).send('Current DMCA updated successfully.');
+    } else {
+      const newDMCA = new DMCA({ content: dmca });
+      await newDMCA.save();
+      res.status(201).send('DMCA created successfully.');
+    }
+
+  } catch (error) {
+    console.error('Error updating DMCA:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to delete the DMCA
+routerAdmin.delete('/delete-dmca', async (req, res) => {
+  try {
+    const deletedDMCA = await DMCA.findOneAndDelete();
+
+    if (deletedDMCA) {
+      res.status(200).send('DMCA deleted successfully.');
+    } else {
+      res.status(404).send('No DMCA found to delete.');
+    }
+
+  } catch (error) {
+    console.error('Error deleting DMCA:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to get the AUP
+routerAdmin.get('/get-aup', async (req, res) => {
+  try {
+    const aup = await AUP.findOne();
+    if (aup) {
+      res.json({ aup: aup.content });
+    } else {
+      res.status(404).send('AUP not found');
+    }
+  } catch (error) {
+    console.error('Error fetching AUP:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to create the AUP
+routerAdmin.put('/create-update-aup', async (req, res) => {
+  const { aup } = req.body;
+
+  try {
+    let existingAUP = await AUP.findOne();
+
+    if (existingAUP) {
+      existingAUP.content = aup;
+      await existingAUP.save();
+      res.status(200).send('Current AUP updated successfully.');
+    } else {
+      const newAUP = new AUP({ content: aup });
+      await newAUP.save();
+      res.status(201).send('AUP created successfully.');
+    }
+
+  } catch (error) {
+    console.error('Error updating AUP:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// API route to delete the AUP
+routerAdmin.delete('/delete-aup', async (req, res) => {
+  try {
+    const deletedAUP = await AUP.findOneAndDelete();
+
+    if (deletedAUP) {
+      res.status(200).send('AUP deleted successfully.');
+    } else {
+      res.status(404).send('No AUP found to delete.');
+    }
+
+  } catch (error) {
+    console.error('Error deleting AUP:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.use('/api/admin', routerAdmin);
+
 // START THE SERVER
-app.listen(4000, () => {
-  console.log('Backend server is running on port 4000');
+app.listen(port, () => {
+  console.log('Backend server is running on port ' + port);
 });

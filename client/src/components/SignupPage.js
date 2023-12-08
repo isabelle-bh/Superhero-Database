@@ -33,19 +33,16 @@ const SignupPage = ({ isAuthenticated, setIsAuthenticated }) => {
         // If sign-up is successful, update isAuthenticated state
         setIsAuthenticated(true);
 
-        // Optionally, you can redirect to a login page or display a success message
-        // navigate('/login');
         navigate('/');
 
         console.log('Sign-up successful!');
 
-        if (username == 'administrator') {
+        if (username === 'administrator') {
           alert('Sign-up successful! You are an administrator.');
         } else {
           alert('Sign-up successful! Please click on the verification link sent to your email to confirm your account.');
         }
       } else {
-        // If sign-up fails, you can handle the error, show a message, or redirect to another page
         console.error('Sign-up failed:', responseData.message);
       }
     } catch (error) {
@@ -83,6 +80,17 @@ const SignupPage = ({ isAuthenticated, setIsAuthenticated }) => {
             />
             <button onClick={handleSignup}>submit</button>
           </div>
+        <div className="footer">
+          <Link to="/policy">
+              <button>view policy</button>
+          </Link>
+          <Link to="/dmca">
+              <button>view DMCA</button>
+          </Link>
+          <Link to="/aup">
+              <button>view AUP</button>
+          </Link>
+        </div>
       </div>
     </div>
   );

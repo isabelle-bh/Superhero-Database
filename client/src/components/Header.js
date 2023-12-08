@@ -51,9 +51,8 @@ const Header = ({ setIsAuthenticated, isAuthenticated }) => {
       const data = await response.json();
   
       if (response.ok) {
-        // If the request is successful, you may handle it accordingly
+        alert('Password updated successfully!');
         setUpdatePasswordMessage('Password updated successfully!');
-        // Optionally, you may want to hide the form after a successful update
         setShowUpdatePasswordForm(false);
       } else {
         // Handle error scenarios
@@ -65,7 +64,6 @@ const Header = ({ setIsAuthenticated, isAuthenticated }) => {
     }
   };
   
-
   // Retrieve the username from localStorage
   const username = localStorage.getItem('username');
 
@@ -85,23 +83,27 @@ const Header = ({ setIsAuthenticated, isAuthenticated }) => {
           </button>
           {showUpdatePasswordForm && (
             <div className="update-password-form">
-              <label>Current Password:</label>
+              <br></br>
               <input
+                className='h-input'
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current Password"
               />
-              <label>New Password:</label>
               <input
+                className='h-input'
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
               />
-              <label>Confirm Password:</label>
               <input
+                className='h-input'
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm Password"
               />
               <button onClick={handleSubmitPasswordUpdate}>Submit</button>
               <p>{updatePasswordMessage}</p>
@@ -114,6 +116,17 @@ const Header = ({ setIsAuthenticated, isAuthenticated }) => {
           <button className="back-button">back to menu</button>
         </Link>
       )}
+      <div className="footer">
+        <Link to="/policy">
+            <button>view policy</button>
+        </Link>
+        <Link to="/dmca">
+            <button>view DMCA</button>
+        </Link>
+        <Link to="/aup">
+            <button>view AUP</button>
+        </Link>
+      </div>
     </div>
   );
 };

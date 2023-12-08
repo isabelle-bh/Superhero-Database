@@ -14,6 +14,17 @@ const Menu = ({ isAuthenticated }) => {
             <Link to="/signup"><button>Signup</button></Link>
             <br></br><Link to="/unauthorized-dashboard"><button>public dashboard</button></Link>
         </div>
+        <div className="footer">
+          <Link to="/policy">
+              <button>view policy</button>
+          </Link>
+          <Link to="/dmca">
+            <button>view DMCA</button>
+          </Link>
+          <Link to="/aup">
+              <button>view AUP</button>
+          </Link>
+        </div>
     </div>
   );
 };
