@@ -48,7 +48,6 @@ function App() {
         <Route path="/" element={<Menu isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/less-admin-dashboard" element={<LessAdmin />} />
         <Route path="/policy" element={<Policy />} />
         <Route path="/dmca" element={<DMCA />} />
         <Route path="/aup" element={<AUP />} />
@@ -93,6 +92,22 @@ function App() {
               <>
             <div className="content">
               <Admin />
+            </div>
+            </>
+            ) : (
+              // Redirect to login if not authenticated
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/less-admin-dashboard"
+          element={
+            isAuthenticated ? (
+              <>
+            <div className="content">
+              <LessAdmin />
             </div>
             </>
             ) : (
