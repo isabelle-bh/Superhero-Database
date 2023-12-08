@@ -228,21 +228,24 @@ const Admin = ({  }) => {
             <h3>All Users:</h3>
             <ul>
               {users.map((user) => (
-                <li key={user.email}>
-                  {user.username}
-                  <button
-                    onClick={() => handleToggleAccount(user.email, user.active)}
-                    className="deactivate-button"
-                  >
-                    {user.active ? 'Deactivate Account' : 'Reactivate Account'}
-                  </button>
-                  <button
-                    onClick={() => (user.lessAdmin ? handleRevokeAdmin(user.email) : handleGrantAdmin(user.email))}
-                    className="admin-button"
+                // Skip rendering if the username is "administrator"
+                user.username !== 'administrator' && (
+                  <li key={user.email}>
+                    {user.username}
+                    <button
+                      onClick={() => handleToggleAccount(user.email, user.active)}
+                      className="deactivate-button"
                     >
-                    {user.lessAdmin ? 'Revoke Admin' : 'Grant Admin'}
-                  </button>
-                </li>
+                      {user.active ? 'Deactivate Account' : 'Reactivate Account'}
+                    </button>
+                    <button
+                      onClick={() => (user.lessAdmin ? handleRevokeAdmin(user.email) : handleGrantAdmin(user.email))}
+                      className="admin-button"
+                    >
+                      {user.lessAdmin ? 'Revoke Admin' : 'Grant Admin'}
+                    </button>
+                  </li>
+                )
               ))}
             </ul>
           </div>
