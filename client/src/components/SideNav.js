@@ -30,7 +30,7 @@ const SideNav = () => {
       if (response.ok) {
         const listsWithData = data.map((list) => ({
           ...list,
-          desc: list.desc, // Assuming the server returns the description in the response
+          desc: list.desc,
         }));
         setLists(listsWithData);
       } else {
@@ -51,7 +51,7 @@ const SideNav = () => {
       if (response.ok) {
         const listsWithData = data.map((list) => ({
           ...list,
-          desc: list.desc, // Assuming the server returns the description in the response
+          desc: list.desc, 
         }));
         setLists(listsWithData);
       } else {
