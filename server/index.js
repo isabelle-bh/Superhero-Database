@@ -657,6 +657,7 @@ app.use('/api/superheroInfo/lists', routerLists);
 routerUsers.use(express.json());
 
 // Signup route
+// watched video from ToThePointCode on youtube: https://youtu.be/v6Ul3o8D-js?si=pjAba9K7NpXyS9_j
 routerUsers.post('/signup', (req, res) => {
   let { username, email, password } = req.body;
   username = username.trim();
@@ -781,6 +782,7 @@ User.findOne({ email })
 
 
 // send verification email
+// watched video from ToThePointCode on youtube: https://youtu.be/v6Ul3o8D-js?si=pjAba9K7NpXyS9_j
 const sendVerificationEmail = ({_id, email}, res) => {
   // url to be used in the email
   const currentUrl = process.env.CURRENT_URL;
@@ -846,6 +848,7 @@ const sendVerificationEmail = ({_id, email}, res) => {
 };
 
 // verify email
+// watched video from ToThePointCode on youtube: https://youtu.be/v6Ul3o8D-js?si=pjAba9K7NpXyS9_j
 routerUsers.get("/verified/:userId/:uniqueString", (req, res) => {
   let { userId, uniqueString } = req.params;
 
@@ -932,11 +935,13 @@ routerUsers.get("/verified/:userId/:uniqueString", (req, res) => {
 });
 
 // verified page route
+// watched video from ToThePointCode on youtube: https://youtu.be/v6Ul3o8D-js?si=pjAba9K7NpXyS9_j
 routerUsers.get('/verified', (req, res) => {
   res.sendFile(path.join(__dirname, './views/verified.html'));
 });
   
 // Login route
+// watched video from ToThePointCode on youtube: https://youtu.be/v6Ul3o8D-js?si=pjAba9K7NpXyS9_j
 routerUsers.post('/login', async (req, res) => {
   let { email, password } = req.body;
   email = email.trim();
