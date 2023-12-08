@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import Header from './components/Header';
@@ -17,22 +18,37 @@ import DMCA from './components/DMCA';
 import AUP from './components/AUP';
 
 function App() {
-  // Initially set isAuthenticated based on localStorage
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    localStorage.getItem('isAuthenticated') === 'true'
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [lists, setLists] = useState([]);
 
   useEffect(() => {
+    // Check if a valid JWT exists in localStorage
+    const token = localStorage.getItem('jwtToken');
+
+    if (token) {
+      const decoded = jwtDecode(token);
+
+      // Check if the token is expired
+      if (decoded.exp < Date.now() / 1000) {
+        // Token expired, redirect to login
+        setIsAuthenticated(false);
+        localStorage.removeItem('jwtToken');
+      } else {
+        // Token valid, set authentication status
+        setIsAuthenticated(true);
+      }
+    } else {
+      setIsAuthenticated(false);
+    }
   }, []);
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Menu isAuthenticated={isAuthenticated} />} />
-        <Route path="/login" element={<LoginPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/signup" element={<SignupPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/less-admin-dashboard" element={<LessAdmin setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />} />
+        <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/less-admin-dashboard" element={<LessAdmin />} />
         <Route path="/policy" element={<Policy />} />
         <Route path="/dmca" element={<DMCA />} />
         <Route path="/aup" element={<AUP />} />
@@ -42,13 +58,14 @@ function App() {
           element={
             isAuthenticated ? (
               <>
-                <SideNav setIsAuthenticated={setIsAuthenticated} />
+                <SideNav />
                 <div className="content">
                   <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
-                  <SearchSection setIsAuthenticated={setIsAuthenticated} />
-                  <CreateListSection setIsAuthenticated={setIsAuthenticated} />
-                  <EditListSection setIsAuthenticated={setIsAuthenticated} />
-                  <DeleteListSection setIsAuthenticated={setIsAuthenticated} setLists={setLists} />                </div>
+                  <SearchSection />
+                  <CreateListSection />
+                  <EditListSection />
+                  <DeleteListSection setLists={setLists} />
+                </div>
               </>
             ) : (
               // Redirect to login if not authenticated
@@ -56,23 +73,32 @@ function App() {
             )
           }
         />
+
         <Route
           path="/unauthorized-dashboard"
           element={
             // Unauthorized dashboard (only header and search section)
             <div className="content">
-              <SideNav setIsAuthenticated={setIsAuthenticated} />
+              <SideNav />
               <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
-              <SearchSection setIsAuthenticated={setIsAuthenticated} />
+              <SearchSection />
             </div>
           }
         />
+
         <Route
           path="/admin-dashboard"
           element={
+            isAuthenticated ? (
+              <>
             <div className="content">
-              <Admin setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
+              <Admin />
             </div>
+            </>
+            ) : (
+              // Redirect to login if not authenticated
+              <Navigate to="/login" />
+            )
           }
         />
         <Route path="/*" element={<Navigate to="/login" />} />
