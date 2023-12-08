@@ -21,6 +21,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem('isAuthenticated') === 'true'
   );
+  const [lists, setLists] = useState([]);
 
   useEffect(() => {
   }, []);
@@ -47,8 +48,7 @@ function App() {
                   <SearchSection setIsAuthenticated={setIsAuthenticated} />
                   <CreateListSection setIsAuthenticated={setIsAuthenticated} />
                   <EditListSection setIsAuthenticated={setIsAuthenticated} />
-                  <DeleteListSection setIsAuthenticated={setIsAuthenticated} />
-                </div>
+                  <DeleteListSection setIsAuthenticated={setIsAuthenticated} setLists={setLists} />                </div>
               </>
             ) : (
               // Redirect to login if not authenticated
