@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
 
-const DeleteListSection = () => {
+const DeleteListSection = ( {setLists} ) => {
   const [listName, setListName] = useState('');
   const [message, setMessage] = useState('');
-  const [setLists] = useState([]);
   const [listsWithData, setListsWithData] = useState([]); // Define listsWithData outside of getUserLists
   const [selectedList, setSelectedList] = useState('');
 
   const getUserLists = async () => {
-    if (selectedList == 'select-list') { 
-      alert('Please select a list.');
-      return;
-    }
 
     try {
       const authToken = localStorage.getItem('authToken');
@@ -29,7 +24,6 @@ const DeleteListSection = () => {
       });
 
       const data = await response.json();
-      console.log('Data from server:', data);
 
       if (response.ok) {
         const listsWithData = data.map((list) => ({
@@ -62,6 +56,11 @@ const DeleteListSection = () => {
   const deleteList = async () => {
     // Reset message
     setMessage('');
+
+    if (selectedList == 'select-list') { 
+      alert('Please select a list.');
+      return;
+    }
   
     const authToken = localStorage.getItem('authToken');
   

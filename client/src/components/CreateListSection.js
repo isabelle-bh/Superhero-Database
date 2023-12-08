@@ -5,9 +5,7 @@ const CreateListSection = () => {
   const [listName, setListName] = useState('');
   const [desc, setDescription] = useState('');
   const [message, setMessage] = useState('');
-  const [visibility, setVisibility] = useState('public'); // Default visibility is set to "public"
 
-  // Assuming you have a state for lists
   const [lists, setLists] = useState([]);
 
   const createList = async () => {
@@ -39,12 +37,12 @@ const CreateListSection = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ listName, desc, visibility }), 
+        body: JSON.stringify({ listName, desc }), 
       });
   
       if (response.ok) {
         // If the request is successful, update the lists state
-        setLists([...lists, { name: listName, desc: desc, visibility: visibility }]);
+        setLists([...lists, { name: listName, desc: desc }]);
         setListName('');
         setDescription(''); // Reset the description input
         setMessage('List created successfully!');
@@ -83,15 +81,6 @@ const CreateListSection = () => {
           value={desc}
           onChange={(e) => setDescription(e.target.value)}
         />
-
-        <select
-          id="visibilityDropdown"
-          value={visibility}
-          onChange={(e) => setVisibility(e.target.value)}
-        >
-          <option value="public">public</option>
-          <option value="private">private</option>
-        </select>
 
         <button id="createListButton" onClick={createList}>
           submit
