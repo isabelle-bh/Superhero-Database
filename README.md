@@ -1,4 +1,4 @@
-This is my superhero database.
+This is my superhero database. It is a fullstack application using the MERN stack.
 
 You can run the client folder by running ```npm i``` and then ```npm start```.
 
